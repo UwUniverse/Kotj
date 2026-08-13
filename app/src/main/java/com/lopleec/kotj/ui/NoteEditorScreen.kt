@@ -11,6 +11,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image as ComposeImage
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,11 +33,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.Delete
@@ -102,6 +105,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -412,6 +416,12 @@ fun NoteEditorScreen(
                         IconButton(onClick = onRedo, enabled = canRedo) {
                             Icon(Icons.AutoMirrored.Outlined.Redo, stringResource(R.string.editor_redo))
                         }
+                        IconButton(onClick = onTogglePinned) {
+                            Icon(
+                                imageVector = if (session.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                                contentDescription = stringResource(if (session.pinned) R.string.editor_unpin else R.string.editor_pin),
+                            )
+                        }
                         IconButton(onClick = { moreSheetVisible = true }) {
                             Icon(Icons.Outlined.MoreVert, stringResource(R.string.editor_more))
                         }
@@ -612,59 +622,58 @@ fun NoteEditorScreen(
             onDismissRequest = { moreSheetVisible = false },
             containerColor = MaterialTheme.colorScheme.surface,
         ) {
-            Text(
-                stringResource(R.string.editor_note_actions),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-            )
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.editor_find_in_note)) },
-                leadingContent = { Icon(Icons.Outlined.Search, null) },
-                modifier = Modifier.clickable { moreSheetVisible = false; findVisible = true },
-            )
-            ListItem(
-                headlineContent = { Text(stringResource(if (session.pinned) R.string.editor_unpin else R.string.editor_pin)) },
-                leadingContent = { Icon(Icons.Outlined.PushPin, null) },
-                modifier = Modifier.clickable { moreSheetVisible = false; onTogglePinned() },
-            )
-            ListItem(
-                headlineContent = {
-                    Text(stringResource(if (session.encrypted) R.string.editor_remove_encryption else R.string.editor_encrypt_note))
-                },
-                leadingContent = { Icon(if (session.encrypted) Icons.Outlined.LockOpen else Icons.Outlined.Lock, null) },
-                modifier = Modifier.clickable {
-                    moreSheetVisible = false
-                    when {
-                        session.encrypted -> onRemoveEncryption()
-                        useSystemUnlock -> onSystemEncrypt()
-                        else -> encryptionDialog = true
-                    }
-                },
-            )
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.editor_move_to_group)) },
-                leadingContent = { Icon(Icons.AutoMirrored.Outlined.InsertDriveFile, null) },
-                modifier = Modifier.clickable { moreSheetVisible = false; categorySheetVisible = true },
-            )
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.editor_export)) },
-                leadingContent = { Icon(Icons.Outlined.SaveAlt, null) },
-                modifier = Modifier.clickable { moreSheetVisible = false; exportSheetVisible = true },
-            )
-            HorizontalDivider()
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.editor_move_to_recently_deleted), color = MaterialTheme.colorScheme.error) },
-                leadingContent = { Icon(Icons.Outlined.Delete, null, tint = MaterialTheme.colorScheme.error) },
-                modifier = Modifier.clickable {
-                    moreSheetVisible = false
-                    when {
-                        session.encrypted && hasSystemUnlock -> onSystemDelete()
-                        session.encrypted -> deletePasswordDialog = true
-                        confirmBeforeDelete -> deleteConfirm = true
-                        else -> onDelete(null)
-                    }
-                },
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                NoteAction(
+                    icon = Icons.Outlined.Search,
+                    label = stringResource(R.string.editor_find),
+                    modifier = Modifier.weight(1f),
+                    onClick = { moreSheetVisible = false; findVisible = true },
+                )
+                NoteAction(
+                    icon = if (session.encrypted) Icons.Outlined.LockOpen else Icons.Outlined.Lock,
+                    label = stringResource(if (session.encrypted) R.string.editor_unlock else R.string.editor_lock),
+                    modifier = Modifier.weight(1f),
+                    outlined = !session.encrypted,
+                    onClick = {
+                        moreSheetVisible = false
+                        when {
+                            session.encrypted -> onRemoveEncryption()
+                            useSystemUnlock -> onSystemEncrypt()
+                            else -> encryptionDialog = true
+                        }
+                    },
+                )
+                NoteAction(
+                    icon = Icons.AutoMirrored.Outlined.InsertDriveFile,
+                    label = stringResource(R.string.editor_move),
+                    modifier = Modifier.weight(1f),
+                    onClick = { moreSheetVisible = false; categorySheetVisible = true },
+                )
+                NoteAction(
+                    icon = Icons.Outlined.SaveAlt,
+                    label = stringResource(R.string.editor_export),
+                    modifier = Modifier.weight(1f),
+                    onClick = { moreSheetVisible = false; exportSheetVisible = true },
+                )
+                NoteAction(
+                    icon = Icons.Outlined.Delete,
+                    label = stringResource(R.string.editor_delete),
+                    modifier = Modifier.weight(1f),
+                    destructive = true,
+                    onClick = {
+                        moreSheetVisible = false
+                        when {
+                            session.encrypted && hasSystemUnlock -> onSystemDelete()
+                            session.encrypted -> deletePasswordDialog = true
+                            confirmBeforeDelete -> deleteConfirm = true
+                            else -> onDelete(null)
+                        }
+                    },
+                )
+            }
             Spacer(Modifier.navigationBarsPadding().height(12.dp))
         }
     }
@@ -723,6 +732,62 @@ fun NoteEditorScreen(
             confirmLabel = stringResource(R.string.editor_delete),
             onDismiss = { deletePasswordDialog = false },
             onConfirm = onDelete,
+        )
+    }
+}
+
+@Composable
+private fun NoteAction(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    destructive: Boolean = false,
+    outlined: Boolean = false,
+) {
+    val backgroundColor = if (destructive) {
+        MaterialTheme.colorScheme.errorContainer
+    } else {
+        MaterialTheme.colorScheme.secondaryContainer
+    }
+    val foregroundColor = if (destructive) {
+        MaterialTheme.colorScheme.onErrorContainer
+    } else {
+        MaterialTheme.colorScheme.onSecondaryContainer
+    }
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .then(
+                    if (outlined) {
+                        Modifier.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                    } else {
+                        Modifier.background(backgroundColor)
+                    },
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (outlined) MaterialTheme.colorScheme.onSurfaceVariant else foregroundColor,
+                modifier = Modifier.size(32.dp),
+            )
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
         )
     }
 }
