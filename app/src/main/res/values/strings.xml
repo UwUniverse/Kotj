@@ -151,7 +151,6 @@
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
-    <string name="settings_back">Back</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_dynamic_color">Dynamic color</string>
@@ -168,6 +167,7 @@
     <string name="settings_confirm_before_deleting_summary">Prevent accidental deletion</string>
     <string name="settings_trash_retention">Recently deleted retention</string>
     <string name="settings_section_about">About</string>
+    <string name="settings_about_kotj">About Kotj</string>
     <string name="settings_about_summary">Version %1$s · Offline local notes</string>
     <string name="settings_sort_by_date">By date</string>
     <string name="settings_sort_alphabetically">Alphabetically</string>

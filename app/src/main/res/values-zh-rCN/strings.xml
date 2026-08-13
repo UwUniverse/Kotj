@@ -151,7 +151,6 @@
 
     <!-- Settings -->
     <string name="settings_title">设置</string>
-    <string name="settings_back">返回</string>
     <string name="settings_section_appearance">外观</string>
     <string name="settings_theme">主题</string>
     <string name="settings_dynamic_color">动态配色</string>
@@ -168,6 +167,7 @@
     <string name="settings_confirm_before_deleting_summary">避免误删备忘录</string>
     <string name="settings_trash_retention">最近删除保留时长</string>
     <string name="settings_section_about">关于</string>
+    <string name="settings_about_kotj">关于 Kotj</string>
     <string name="settings_about_summary">版本 %1$s · 本地离线备忘录</string>
     <string name="settings_sort_by_date">按日期</string>
     <string name="settings_sort_alphabetically">按首字母</string>

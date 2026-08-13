@@ -5,6 +5,7 @@
 /local.properties
 /.idea/
 /build/
+/gradle/uwu-compose/build/
 /captures/
 .externalNativeBuild/
 .cxx/

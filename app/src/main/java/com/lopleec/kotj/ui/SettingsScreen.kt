@@ -6,33 +6,23 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteSweep
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.outlined.WarningAmber
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +36,14 @@ import com.lopleec.kotj.R
 import com.lopleec.kotj.data.AppSettings
 import com.lopleec.kotj.data.ThemeMode
 import com.lopleec.kotj.data.NoteSort
+import com.lopleec.kotj.BuildConfig
+import org.uwuaosp.compose.settingslib.PreferenceGroupSpacer
+import org.uwuaosp.compose.settingslib.PreferencePosition
+import org.uwuaosp.compose.settingslib.PreferenceRow
+import org.uwuaosp.compose.settingslib.SettingsCategory
+import org.uwuaosp.compose.settingslib.SettingsHomepageIcon
+import org.uwuaosp.compose.settingslib.SettingsScaffold
+import org.uwuaosp.compose.settingslib.SwitchPreferenceRow
 
 private enum class SettingsChoice { THEME, TRASH, SORT }
 
@@ -56,133 +54,89 @@ fun SettingsScreen(
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
-    val versionName = remember(context) {
-        runCatching {
-            context.packageManager.getPackageInfo(context.packageName, 0).versionName
-        }.getOrNull() ?: "1.1.0"
-    }
     val systemUnlockAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
         (context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager).isDeviceSecure
     var choice by remember { mutableStateOf<SettingsChoice?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.settings_back))
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = 32.dp),
-        ) {
-            item { SectionTitle(stringResource(R.string.settings_section_appearance)) }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_theme)) },
-                    supportingContent = { Text(settings.themeMode.label()) },
-                    leadingContent = { Icon(Icons.Outlined.DarkMode, null) },
-                    modifier = Modifier.clickable { choice = SettingsChoice.THEME },
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_dynamic_color)) },
-                    supportingContent = { Text(stringResource(R.string.settings_dynamic_color_summary)) },
-                    leadingContent = { Icon(Icons.Outlined.AutoAwesome, null) },
-                    trailingContent = {
-                        Switch(
-                            checked = settings.useDynamicColor,
-                            onCheckedChange = { onUpdate(settings.copy(useDynamicColor = it)) },
-                        )
-                    },
-                )
-            }
-            item { HorizontalDivider() }
-            item { SectionTitle(stringResource(R.string.settings_section_security)) }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_system_unlock)) },
-                    supportingContent = {
-                        Text(
-                            if (systemUnlockAvailable) {
-                                stringResource(R.string.settings_system_unlock_summary)
-                            } else {
-                                stringResource(R.string.settings_system_unlock_unavailable)
-                            },
-                        )
-                    },
-                    leadingContent = { Icon(Icons.Outlined.Fingerprint, null) },
-                    trailingContent = {
-                        Switch(
-                            checked = settings.useSystemUnlock && systemUnlockAvailable,
-                            onCheckedChange = { onUpdate(settings.copy(useSystemUnlock = it)) },
-                            enabled = systemUnlockAvailable,
-                        )
-                    },
-                )
-            }
-            item { HorizontalDivider() }
-            item { SectionTitle(stringResource(R.string.settings_section_notes)) }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_note_sorting)) },
-                    supportingContent = { Text(settings.noteSort.label()) },
-                    leadingContent = { Icon(Icons.AutoMirrored.Outlined.Sort, null) },
-                    modifier = Modifier.clickable { choice = SettingsChoice.SORT },
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_group_by_date)) },
-                    supportingContent = { Text(stringResource(R.string.settings_group_by_date_summary)) },
-                    leadingContent = { Icon(Icons.Outlined.ViewAgenda, null) },
-                    trailingContent = {
-                        Switch(
-                            checked = settings.groupNotesByDate,
-                            onCheckedChange = { onUpdate(settings.copy(groupNotesByDate = it)) },
-                        )
-                    },
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_confirm_before_deleting)) },
-                    supportingContent = { Text(stringResource(R.string.settings_confirm_before_deleting_summary)) },
-                    leadingContent = { Icon(Icons.Outlined.WarningAmber, null) },
-                    trailingContent = {
-                        Switch(
-                            checked = settings.confirmBeforeDelete,
-                            onCheckedChange = { onUpdate(settings.copy(confirmBeforeDelete = it)) },
-                        )
-                    },
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_trash_retention)) },
-                    supportingContent = { Text(retentionLabel(settings.trashRetentionDays)) },
-                    leadingContent = { Icon(Icons.Outlined.DeleteSweep, null) },
-                    modifier = Modifier.clickable { choice = SettingsChoice.TRASH },
-                )
-            }
-            item { HorizontalDivider() }
-            item { SectionTitle(stringResource(R.string.settings_section_about)) }
-            item {
-                ListItem(
-                    headlineContent = { Text("Kotj") },
-                    supportingContent = {
-                        Text(stringResource(R.string.settings_about_summary, versionName))
-                    },
-                    leadingContent = { Icon(Icons.Outlined.Info, null) },
-                )
-            }
-        }
+    SettingsScaffold(
+        title = stringResource(R.string.settings_title),
+        showBackButton = true,
+        onNavigateUp = onBack,
+    ) {
+        SettingsCategory(title = stringResource(R.string.settings_section_appearance))
+        PreferenceRow(
+            title = stringResource(R.string.settings_theme),
+            summary = settings.themeMode.label(),
+            iconContent = { SettingsHomepageIcon(Icons.Outlined.DarkMode) },
+            position = PreferencePosition.Top,
+            onClick = { choice = SettingsChoice.THEME },
+        )
+        PreferenceGroupSpacer()
+        SwitchPreferenceRow(
+            title = stringResource(R.string.settings_dynamic_color),
+            summary = stringResource(R.string.settings_dynamic_color_summary),
+            checked = settings.useDynamicColor,
+            onCheckedChange = { onUpdate(settings.copy(useDynamicColor = it)) },
+            iconContent = { SettingsHomepageIcon(Icons.Outlined.AutoAwesome) },
+            position = PreferencePosition.Bottom,
+        )
+
+        SettingsCategory(title = stringResource(R.string.settings_section_security))
+        SwitchPreferenceRow(
+            title = stringResource(R.string.settings_system_unlock),
+            summary = if (systemUnlockAvailable) {
+                stringResource(R.string.settings_system_unlock_summary)
+            } else {
+                stringResource(R.string.settings_system_unlock_unavailable)
+            },
+            checked = settings.useSystemUnlock && systemUnlockAvailable,
+            onCheckedChange = { onUpdate(settings.copy(useSystemUnlock = it)) },
+            enabled = systemUnlockAvailable,
+            iconContent = { SettingsHomepageIcon(Icons.Outlined.Fingerprint) },
+        )
+
+        SettingsCategory(title = stringResource(R.string.settings_section_notes))
+        PreferenceRow(
+            title = stringResource(R.string.settings_note_sorting),
+            summary = settings.noteSort.label(),
+            iconContent = { SettingsHomepageIcon(Icons.AutoMirrored.Outlined.Sort) },
+            position = PreferencePosition.Top,
+            onClick = { choice = SettingsChoice.SORT },
+        )
+        PreferenceGroupSpacer()
+        SwitchPreferenceRow(
+            title = stringResource(R.string.settings_group_by_date),
+            summary = stringResource(R.string.settings_group_by_date_summary),
+            checked = settings.groupNotesByDate,
+            onCheckedChange = { onUpdate(settings.copy(groupNotesByDate = it)) },
+            iconContent = { SettingsHomepageIcon(Icons.Outlined.ViewAgenda) },
+            position = PreferencePosition.Middle,
+        )
+        PreferenceGroupSpacer()
+        SwitchPreferenceRow(
+            title = stringResource(R.string.settings_confirm_before_deleting),
+            summary = stringResource(R.string.settings_confirm_before_deleting_summary),
+            checked = settings.confirmBeforeDelete,
+            onCheckedChange = { onUpdate(settings.copy(confirmBeforeDelete = it)) },
+            iconContent = { SettingsHomepageIcon(Icons.Outlined.WarningAmber) },
+            position = PreferencePosition.Middle,
+        )
+        PreferenceGroupSpacer()
+        PreferenceRow(
+            title = stringResource(R.string.settings_trash_retention),
+            summary = retentionLabel(settings.trashRetentionDays),
+            iconContent = { SettingsHomepageIcon(Icons.Outlined.DeleteSweep) },
+            position = PreferencePosition.Bottom,
+            onClick = { choice = SettingsChoice.TRASH },
+        )
+
+        SettingsCategory(title = stringResource(R.string.settings_section_about))
+        PreferenceRow(
+            title = stringResource(R.string.settings_about_kotj),
+            summary = stringResource(R.string.settings_about_summary, BuildConfig.VERSION_NAME),
+            iconContent = { SettingsHomepageIcon(Icons.Outlined.Info) },
+            onClick = {},
+        )
     }
 
     when (choice) {
@@ -215,16 +169,6 @@ fun SettingsScreen(
 private fun NoteSort.label(): String = when (this) {
     NoteSort.UPDATED -> stringResource(R.string.settings_sort_by_date)
     NoteSort.TITLE -> stringResource(R.string.settings_sort_alphabetically)
-}
-
-@Composable
-private fun SectionTitle(value: String) {
-    Text(
-        value,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 8.dp),
-    )
 }
 
 @Composable

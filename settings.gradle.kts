@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Kotj"
 include(":app")
+include(":uwu-compose")
+project(":uwu-compose").projectDir = file("gradle/uwu-compose")
