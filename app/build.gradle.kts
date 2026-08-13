@@ -21,16 +21,12 @@ val hasReleaseSigning = configuredReleaseProperties == releaseSigningProperties.
 
 android {
     namespace = "com.lopleec.kotj"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.lopleec.kotj"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 2
         versionName = "1.1.0"
     }
@@ -80,9 +76,8 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.foundation:foundation")
-    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material3:material3:1.5.0-alpha25")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
-    // 2.11.0 requires compileSdk 37 / AGP 9.1; this project intentionally targets Android 16.
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
