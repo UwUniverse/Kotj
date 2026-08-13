@@ -39,11 +39,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalBottomSheet
@@ -408,11 +409,15 @@ private fun LibraryScreen(
             },
             floatingActionButton = {
                 if (!state.showingTrash) {
-                    ExtendedFloatingActionButton(
+                    LargeFloatingActionButton(
                         onClick = viewModel::createNote,
-                        icon = { Icon(Icons.Outlined.Edit, null) },
-                        text = { Text(stringResource(R.string.library_new_note)) },
-                    )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = stringResource(R.string.library_new_note),
+                            modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+                        )
+                    }
                 }
             },
         ) { padding ->
