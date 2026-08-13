@@ -28,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.lopleec.kotj.R
 import com.lopleec.kotj.model.BlockType
 import com.lopleec.kotj.model.ImportPreview
 import com.lopleec.kotj.model.NoteBlock
@@ -50,7 +52,6 @@ fun ImportPreviewScreen(
     onBack: () -> Unit,
     onSave: () -> Unit,
 ) {
-    val strings = LocalAppStrings.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -63,7 +64,7 @@ fun ImportPreviewScreen(
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
-                            strings("临时预览 · 尚未保存", "Temporary preview · Not saved"),
+                            stringResource(R.string.import_preview_status),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -71,12 +72,12 @@ fun ImportPreviewScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, strings("返回", "Back"))
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.editor_back))
                     }
                 },
                 actions = {
                     TextButton(onClick = onSave) {
-                        Text(strings("保存备忘录", "Save note"))
+                        Text(stringResource(R.string.import_preview_save_note))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -91,7 +92,7 @@ fun ImportPreviewScreen(
             ) {
                 item(key = "preview-title") {
                     Text(
-                        preview.document.title.ifBlank { strings("无标题", "Untitled") },
+                        preview.document.title.ifBlank { stringResource(R.string.editor_untitled) },
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                     )
@@ -122,7 +123,8 @@ fun ImportPreviewScreen(
                         BlockType.DIVIDER -> HorizontalDivider()
                         BlockType.TABLE -> PreviewTable(block)
                         BlockType.IMAGE -> Text(
-                            strings("[图片]", "[Image]") + block.imageCaption.takeIf(String::isNotBlank)?.let { " $it" }.orEmpty(),
+                            if (block.imageCaption.isBlank()) stringResource(R.string.import_preview_image)
+                            else stringResource(R.string.import_preview_image_with_caption, block.imageCaption),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -138,7 +140,7 @@ private fun PreviewTable(block: NoteBlock) {
         Row {
             Icon(Icons.Outlined.TableChart, null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(8.dp))
-            Text(LocalAppStrings.current("表格", "Table"), style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.editor_table), style = MaterialTheme.typography.labelLarge)
         }
         block.tableCells.forEach { row ->
             Text(row.joinToString("  |  "), style = MaterialTheme.typography.bodyMedium)

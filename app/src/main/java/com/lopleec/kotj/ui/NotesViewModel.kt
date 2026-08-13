@@ -4,11 +4,13 @@ import android.app.Application
 import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.lopleec.kotj.R
 import com.lopleec.kotj.data.NotesRepository
 import com.lopleec.kotj.data.AttachmentContent
 import com.lopleec.kotj.data.AppSettings
@@ -77,11 +79,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             refresh()
             if (hardeningError != null) {
                 state = state.copy(
-                    message = localizedError(
-                        hardeningError,
-                        "安全存储清理失败，请检查设备存储空间",
-                        "Secure storage cleanup failed. Check available device storage",
-                    ),
+                    message = string(R.string.secure_storage_cleanup_failed),
                 )
             }
         }
@@ -104,7 +102,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 if (generation == refreshGeneration) {
                     state = state.copy(
                         loading = false,
-                        message = localizedError(error, "无法读取备忘录", "Could not load notes"),
+                        message = string(R.string.notes_load_failed),
                     )
                 }
             }
@@ -176,7 +174,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             }.onFailure { error ->
                 if (error is CancellationException) return@launch
                 state = state.copy(
-                    message = localizedError(error, "无法打开文件", "Could not open the file"),
+                    message = string(R.string.file_open_failed),
                     securityOperationInProgress = false,
                 )
             }
@@ -210,14 +208,14 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             }.onSuccess {
                 state = state.copy(
                     importPreview = null,
-                    message = tr("已保存为备忘录", "Saved as a note"),
+                    message = string(R.string.import_saved_as_note),
                     securityOperationInProgress = false,
                 )
                 refresh()
             }.onFailure { error ->
                 if (error is CancellationException) throw error
                 state = state.copy(
-                    message = localizedError(error, "保存文件失败", "Could not save the file"),
+                    message = string(R.string.file_save_failed),
                     securityOperationInProgress = false,
                 )
             }
@@ -245,7 +243,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 .onFailure { error ->
                     if (error is CancellationException) throw error
-                    state = state.copy(message = localizedError(error, "无法新建备忘录", "Could not create note"))
+                    state = state.copy(message = string(R.string.note_create_failed))
                 }
         }
     }
@@ -282,7 +280,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         openJob = viewModelScope.launch {
             runCatching {
                 withContext(Dispatchers.IO) {
-                    val stored = requireNotNull(repository.readNote(id)) { tr("备忘录不存在", "Note not found") }
+                    val stored = requireNotNull(repository.readNote(id)) { string(R.string.note_not_found) }
                     val decoded = repository.decode(stored, password)
                     val document = if (
                         stored.encrypted && repository.hasUnprotectedImages(decoded)
@@ -322,7 +320,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 resetHistory()
             }.onFailure { error ->
                 if (error is CancellationException) return@launch
-                state = state.copy(message = localizedError(error, "无法打开备忘录", "Could not open the note"))
+                state = state.copy(message = string(R.string.note_open_failed))
             }
         }
     }
@@ -378,7 +376,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                     if (current?.noteId == editor.noteId) {
                         state = state.copy(
                             editor = current.copy(pinned = editor.pinned),
-                            message = localizedError(error, "无法更新置顶状态", "Could not update pin status"),
+                            message = string(R.string.pin_update_failed),
                         )
                     }
                 }
@@ -390,7 +388,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             runCatching { withContext(Dispatchers.IO) { repository.setPinned(id, pinned) } }
                 .onFailure { error ->
                     if (error is CancellationException) throw error
-                    state = state.copy(message = localizedError(error, "无法更新置顶状态", "Could not update pin status"))
+                    state = state.copy(message = string(R.string.pin_update_failed))
                 }
             refresh()
         }
@@ -409,7 +407,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun encryptEditor(password: String, onComplete: (Boolean) -> Unit) {
         if (password.length < 4) {
-            state = state.copy(message = tr("密码至少需要 4 位", "Password must contain at least 4 characters"))
+            state = state.copy(message = string(R.string.password_too_short))
             onComplete(false)
             return
         }
@@ -442,7 +440,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                         encrypted = true,
                         password = password,
                     ),
-                    message = tr("备忘录已加密", "Note encrypted"),
+                    message = string(R.string.note_encrypted),
                     securityOperationInProgress = false,
                     canUndo = false,
                     canRedo = false,
@@ -451,7 +449,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 onComplete(true)
             }.onFailure { error ->
                 state = state.copy(
-                    message = localizedError(error, "加密失败", "Could not encrypt the note"),
+                    message = string(R.string.note_encrypt_failed),
                     securityOperationInProgress = false,
                 )
                 onComplete(false)
@@ -487,7 +485,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                         encrypted = false,
                         password = null,
                     ),
-                    message = tr("已移除密码", "Password removed"),
+                    message = string(R.string.password_removed),
                     securityOperationInProgress = false,
                     canUndo = false,
                     canRedo = false,
@@ -495,7 +493,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 refreshSummariesKeepingEditor()
             }.onFailure { error ->
                 state = state.copy(
-                    message = localizedError(error, "移除密码失败", "Could not remove the password"),
+                    message = string(R.string.password_remove_failed),
                     securityOperationInProgress = false,
                 )
             }
@@ -536,7 +534,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 )
                 scheduleSave()
             }.onFailure { error ->
-                state = state.copy(message = localizedError(error, "无法添加图片", "Could not add the photo"))
+                state = state.copy(message = string(R.string.photo_add_failed))
             }
         }
     }
@@ -581,7 +579,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 if (error is CancellationException) throw error
                 state = state.copy(
                     securityOperationInProgress = false,
-                    message = localizedError(error, "无法保存备忘录", "Could not save note"),
+                    message = string(R.string.note_save_failed),
                 )
             }
         }
@@ -615,7 +613,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 resetHistory()
                 state = state.copy(
                     editor = null,
-                    message = tr("已移到最近删除", "Moved to recently deleted"),
+                    message = string(R.string.moved_to_trash),
                     securityOperationInProgress = false,
                     canUndo = false,
                     canRedo = false,
@@ -623,7 +621,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             }.onFailure { error ->
                 if (error is CancellationException) throw error
                 state = state.copy(
-                    message = localizedError(error, "密码错误，未删除备忘录", "Incorrect password. The note was not deleted"),
+                    message = string(R.string.incorrect_password_not_deleted),
                     securityOperationInProgress = false,
                 )
             }
@@ -634,10 +632,10 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     fun restore(id: String) {
         viewModelScope.launch {
             runCatching { withContext(Dispatchers.IO) { repository.setDeleted(id, false) } }
-                .onSuccess { state = state.copy(message = tr("备忘录已恢复", "Note restored")) }
+                .onSuccess { state = state.copy(message = string(R.string.note_restored)) }
                 .onFailure { error ->
                     if (error is CancellationException) throw error
-                    state = state.copy(message = localizedError(error, "无法恢复备忘录", "Could not restore note"))
+                    state = state.copy(message = string(R.string.note_restore_failed))
                 }
             refresh()
         }
@@ -648,10 +646,10 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             runCatching { withContext(Dispatchers.IO) { repository.moveToTrashAuthorized(id, password) } }
                 .onSuccess {
                     onSuccess()
-                    state = state.copy(message = tr("已移到最近删除", "Moved to recently deleted"))
+                    state = state.copy(message = string(R.string.moved_to_trash))
                 }
                 .onFailure { error ->
-                    state = state.copy(message = localizedError(error, "密码错误，未删除备忘录", "Incorrect password. The note was not deleted"))
+                    state = state.copy(message = string(R.string.incorrect_password_not_deleted))
                 }
             refresh()
         }
@@ -660,10 +658,10 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     fun moveNote(id: String, categoryId: String?) {
         viewModelScope.launch {
             runCatching { withContext(Dispatchers.IO) { repository.moveNote(id, categoryId) } }
-                .onSuccess { state = state.copy(message = tr("已移动到分组", "Moved to group")) }
+                .onSuccess { state = state.copy(message = string(R.string.note_moved_to_group)) }
                 .onFailure { error ->
                     if (error is CancellationException) throw error
-                    state = state.copy(message = localizedError(error, "无法移动备忘录", "Could not move note"))
+                    state = state.copy(message = string(R.string.note_move_failed))
                 }
             refresh()
         }
@@ -672,8 +670,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     fun renameNote(id: String, title: String) {
         viewModelScope.launch {
             runCatching { withContext(Dispatchers.IO) { repository.renameNote(id, title) } }
-                .onSuccess { state = state.copy(message = tr("标题已修改", "Title updated")) }
-                .onFailure { state = state.copy(message = localizedError(it, "重命名失败", "Could not rename the note")) }
+                .onSuccess { state = state.copy(message = string(R.string.note_title_updated)) }
+                .onFailure { state = state.copy(message = string(R.string.note_rename_failed)) }
             refresh()
         }
     }
@@ -689,7 +687,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }.onFailure { error ->
                 if (error is CancellationException) throw error
-                state = state.copy(message = localizedError(error, "无法清理最近删除", "Could not clean recently deleted"))
+                state = state.copy(message = string(R.string.trash_cleanup_failed))
             }
             if (state.showingTrash) refresh()
         }
@@ -701,10 +699,10 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 .onSuccess {
                     systemUnlockStore.remove(id)
                     onSuccess()
-                    state = state.copy(message = tr("已永久删除", "Deleted forever"))
+                    state = state.copy(message = string(R.string.deleted_forever))
                 }
                 .onFailure { error ->
-                    state = state.copy(message = localizedError(error, "密码错误，未删除备忘录", "Incorrect password. The note was not deleted"))
+                    state = state.copy(message = string(R.string.incorrect_password_not_deleted))
                 }
             refresh()
         }
@@ -720,17 +718,14 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             }.onSuccess { encryptedLeft ->
                 state = state.copy(
                     message = if (encryptedLeft > 0) {
-                        tr(
-                            "已删除未加密项目；加密备忘录需逐个输入密码",
-                            "Unencrypted items deleted. Enter each encrypted note's password to delete it",
-                        )
+                        string(R.string.unencrypted_trash_deleted)
                     } else {
-                        tr("最近删除已清空", "Recently deleted emptied")
+                        string(R.string.trash_emptied)
                     },
                 )
             }.onFailure { error ->
                 if (error is CancellationException) throw error
-                state = state.copy(message = localizedError(error, "无法清空最近删除", "Could not empty recently deleted"))
+                state = state.copy(message = string(R.string.trash_empty_failed))
             }
             refresh()
         }
@@ -746,7 +741,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     private fun categoryAction(action: () -> Unit) {
         viewModelScope.launch {
             runCatching { withContext(Dispatchers.IO) { action() } }
-                .onFailure { state = state.copy(message = localizedError(it, "分类操作失败", "Could not update the group")) }
+                .onFailure { state = state.copy(message = string(R.string.group_update_failed)) }
             refresh()
         }
     }
@@ -755,8 +750,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         state = state.copy(message = null)
     }
 
-    fun showMessage(chinese: String, english: String) {
-        state = state.copy(message = tr(chinese, english))
+    fun showMessage(@StringRes id: Int, vararg args: Any) {
+        state = state.copy(message = string(id, *args))
     }
 
     fun scheduleEncryptedAutoLock() {
@@ -797,11 +792,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 if (error is CancellationException) throw error
                 state = state.copy(
                     securityOperationInProgress = false,
-                    message = localizedError(
-                        error,
-                        "自动锁定前保存失败，备忘录仍保持打开",
-                        "Could not save before auto-lock; the note remains open",
-                    ),
+                    message = string(R.string.auto_lock_save_failed),
                 )
             }
             refresh()
@@ -822,7 +813,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             persistSnapshot(editor, cleanupAttachments)
         }.onFailure { error ->
             if (error is CancellationException) throw error
-            state = state.copy(message = localizedError(error, "保存失败", "Could not save the note"))
+            state = state.copy(message = string(R.string.note_background_save_failed))
         }
     }
 
@@ -851,7 +842,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             .onFailure { error ->
                 if (error is CancellationException) throw error
                 if (generation == refreshGeneration) {
-                    state = state.copy(message = localizedError(error, "无法刷新备忘录", "Could not refresh notes"))
+                    state = state.copy(message = string(R.string.notes_refresh_failed))
                 }
             }
     }
@@ -869,11 +860,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         redoHistory.clear()
     }
 
-    private fun tr(chinese: String, english: String): String =
-        if (isEnglish(state.settings.language)) english else chinese
-
-    private fun localizedError(error: Throwable, chineseFallback: String, englishFallback: String): String =
-        if (isEnglish(state.settings.language)) englishFallback else error.message ?: chineseFallback
+    private fun string(@StringRes id: Int, vararg args: Any): String =
+        getApplication<Application>().getString(id, *args)
 
     private companion object {
         const val AUTO_LOCK_DELAY_MS = 15_000L

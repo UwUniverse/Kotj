@@ -3,12 +3,10 @@ package com.lopleec.kotj.data
 import android.content.Context
 import androidx.core.content.edit
 
-enum class AppLanguage { SYSTEM, CHINESE, ENGLISH }
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 enum class NoteSort { UPDATED, TITLE }
 
 data class AppSettings(
-    val language: AppLanguage = AppLanguage.SYSTEM,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val useDynamicColor: Boolean = true,
     val trashRetentionDays: Int = 30,
@@ -22,7 +20,6 @@ class SettingsRepository(context: Context) {
     private val preferences = context.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
     fun load(): AppSettings = AppSettings(
-        language = enumValueOrDefault(preferences.getString("language", null), AppLanguage.SYSTEM),
         themeMode = enumValueOrDefault(preferences.getString("theme_mode", null), ThemeMode.SYSTEM),
         useDynamicColor = preferences.getBoolean("dynamic_color", true),
         trashRetentionDays = preferences.getInt("trash_retention_days", 30),
@@ -34,7 +31,7 @@ class SettingsRepository(context: Context) {
 
     fun save(settings: AppSettings) {
         preferences.edit {
-            putString("language", settings.language.name)
+            remove("language")
             putString("theme_mode", settings.themeMode.name)
             putBoolean("dynamic_color", settings.useDynamicColor)
             putInt("trash_retention_days", settings.trashRetentionDays)

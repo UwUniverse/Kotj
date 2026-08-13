@@ -106,6 +106,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.SpanStyle
@@ -122,6 +123,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lopleec.kotj.R
 import com.lopleec.kotj.data.AttachmentContent
 import com.lopleec.kotj.export.ExportFormat
 import com.lopleec.kotj.export.NoteExporter
@@ -162,9 +164,15 @@ fun NoteEditorScreen(
     onTogglePinned: () -> Unit,
     snackbar: SnackbarHostState,
 ) {
-    val strings = LocalAppStrings.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val couldNotCreateFile = stringResource(R.string.editor_could_not_create_file)
+    val exportDocxSuccess = stringResource(R.string.editor_export_success, "DOCX")
+    val exportMarkdownSuccess = stringResource(R.string.editor_export_success, "MD")
+    val exportTextSuccess = stringResource(R.string.editor_export_success, "TXT")
+    val exportFailed = stringResource(R.string.editor_export_failed)
+    val defaultFileName = stringResource(R.string.editor_default_file_name)
+    val selectTextToFormat = stringResource(R.string.editor_select_text_to_format)
     var activeBlockId by remember(session.noteId) { mutableStateOf<String?>(null) }
     var activeSelections by remember(session.noteId) { mutableStateOf<Map<String, TextRange>>(emptyMap()) }
     var pendingFocusBlockId by remember(session.noteId) { mutableStateOf(if (session.autoFocus) TITLE_BLOCK_ID else null) }
@@ -243,12 +251,18 @@ fun NoteEditorScreen(
                                 )
                                 ExportFormat.TEXT -> output.write(NoteExporter.text(snapshot).toByteArray())
                             }
-                        } ?: error(strings("无法创建文件", "Could not create the file"))
+                        } ?: error(couldNotCreateFile)
                     }
                 }.onSuccess {
-                    snackbar.showSnackbar(strings("已导出 ${format.extension.uppercase()} 文件", "Exported ${format.extension.uppercase()} file"))
+                    snackbar.showSnackbar(
+                        when (format) {
+                            ExportFormat.DOCX -> exportDocxSuccess
+                            ExportFormat.MARKDOWN -> exportMarkdownSuccess
+                            ExportFormat.TEXT -> exportTextSuccess
+                        },
+                    )
                 }.onFailure {
-                    snackbar.showSnackbar(it.message ?: strings("导出失败", "Export failed"))
+                    snackbar.showSnackbar(it.message ?: exportFailed)
                 }
             }
         }
@@ -257,7 +271,7 @@ fun NoteEditorScreen(
 
     fun launchExport(format: ExportFormat) {
         exportFormat = format
-        val cleanTitle = session.document.title.ifBlank { strings("Kotj备忘录", "Kotj note") }
+        val cleanTitle = session.document.title.ifBlank { defaultFileName }
             .replace(Regex("[\\/:*?\"<>|]"), "_")
             .take(60)
         exportLauncher.launch(
@@ -331,7 +345,7 @@ fun NoteEditorScreen(
     fun applyTextFormat(kind: FormatKind, color: Color? = null) {
         val selections = activeSelections.filterValues { !it.collapsed }
         if (selections.isEmpty()) {
-            scope.launch { snackbar.showSnackbar(strings("请先选择需要设置格式的文字", "Select text to format first")) }
+            scope.launch { snackbar.showSnackbar(selectTextToFormat) }
             return
         }
         onUpdate { document ->
@@ -380,7 +394,7 @@ fun NoteEditorScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            session.document.title.ifBlank { strings("无标题", "Untitled") },
+                            session.document.title.ifBlank { stringResource(R.string.editor_untitled) },
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.titleMedium,
@@ -388,18 +402,18 @@ fun NoteEditorScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, strings("返回", "Back"))
+                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.editor_back))
                         }
                     },
                     actions = {
                         IconButton(onClick = onUndo, enabled = canUndo) {
-                            Icon(Icons.AutoMirrored.Outlined.Undo, strings("撤销", "Undo"))
+                            Icon(Icons.AutoMirrored.Outlined.Undo, stringResource(R.string.editor_undo))
                         }
                         IconButton(onClick = onRedo, enabled = canRedo) {
-                            Icon(Icons.AutoMirrored.Outlined.Redo, strings("重做", "Redo"))
+                            Icon(Icons.AutoMirrored.Outlined.Redo, stringResource(R.string.editor_redo))
                         }
                         IconButton(onClick = { moreSheetVisible = true }) {
-                            Icon(Icons.Outlined.MoreVert, strings("更多", "More"))
+                            Icon(Icons.Outlined.MoreVert, stringResource(R.string.editor_more))
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -413,23 +427,26 @@ fun NoteEditorScreen(
                             value = findQuery,
                             onValueChange = { findQuery = it },
                             modifier = Modifier.weight(1f),
-                            placeholder = { Text(strings("在备忘录中查找", "Find in note")) },
+                            placeholder = { Text(stringResource(R.string.editor_find_in_note)) },
                             leadingIcon = { Icon(Icons.Outlined.Search, null) },
                             supportingText = if (findQuery.isNotBlank()) ({
-                                Text(if (findMatches.isEmpty()) strings("无结果", "No results") else "${activeFindIndex + 1}/${findMatches.size}")
+                                Text(
+                                    if (findMatches.isEmpty()) stringResource(R.string.editor_no_results)
+                                    else stringResource(R.string.editor_find_result_position, activeFindIndex + 1, findMatches.size),
+                                )
                             }) else null,
                             singleLine = true,
                         )
                         IconButton(
                             onClick = { if (findMatches.isNotEmpty()) activeFindIndex = (activeFindIndex - 1 + findMatches.size) % findMatches.size },
                             enabled = findMatches.isNotEmpty(),
-                        ) { Icon(Icons.Outlined.KeyboardArrowUp, strings("上一个", "Previous")) }
+                        ) { Icon(Icons.Outlined.KeyboardArrowUp, stringResource(R.string.editor_previous)) }
                         IconButton(
                             onClick = { if (findMatches.isNotEmpty()) activeFindIndex = (activeFindIndex + 1) % findMatches.size },
                             enabled = findMatches.isNotEmpty(),
-                        ) { Icon(Icons.Outlined.KeyboardArrowDown, strings("下一个", "Next")) }
+                        ) { Icon(Icons.Outlined.KeyboardArrowDown, stringResource(R.string.editor_next)) }
                         IconButton(onClick = { findVisible = false; findQuery = "" }) {
-                            Icon(Icons.Outlined.Close, strings("关闭查找", "Close find"))
+                            Icon(Icons.Outlined.Close, stringResource(R.string.editor_close_find))
                         }
                     }
                 }
@@ -565,12 +582,12 @@ fun NoteEditorScreen(
             containerColor = MaterialTheme.colorScheme.surface,
         ) {
             Text(
-                strings("移动到分类", "Move to group"),
+                stringResource(R.string.editor_move_to_group),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
             ListItem(
-                headlineContent = { Text(strings("未分类", "No group")) },
+                headlineContent = { Text(stringResource(R.string.editor_no_group)) },
                 leadingContent = { RadioButton(selected = session.categoryId == null, onClick = null) },
                 modifier = Modifier.clickable {
                     onCategoryChange(null)
@@ -579,7 +596,7 @@ fun NoteEditorScreen(
             )
             categories.forEach { category ->
                 ListItem(
-                    headlineContent = { Text(category.localizedName(strings)) },
+                    headlineContent = { Text(category.localizedName()) },
                     leadingContent = { RadioButton(selected = session.categoryId == category.id, onClick = null) },
                     modifier = Modifier.clickable {
                         onCategoryChange(category.id)
@@ -596,22 +613,24 @@ fun NoteEditorScreen(
             containerColor = MaterialTheme.colorScheme.surface,
         ) {
             Text(
-                strings("备忘录操作", "Note actions"),
+                stringResource(R.string.editor_note_actions),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
             ListItem(
-                headlineContent = { Text(strings("在备忘录中查找", "Find in note")) },
+                headlineContent = { Text(stringResource(R.string.editor_find_in_note)) },
                 leadingContent = { Icon(Icons.Outlined.Search, null) },
                 modifier = Modifier.clickable { moreSheetVisible = false; findVisible = true },
             )
             ListItem(
-                headlineContent = { Text(if (session.pinned) strings("取消置顶", "Unpin") else strings("置顶", "Pin")) },
+                headlineContent = { Text(stringResource(if (session.pinned) R.string.editor_unpin else R.string.editor_pin)) },
                 leadingContent = { Icon(Icons.Outlined.PushPin, null) },
                 modifier = Modifier.clickable { moreSheetVisible = false; onTogglePinned() },
             )
             ListItem(
-                headlineContent = { Text(if (session.encrypted) strings("移除加密", "Remove encryption") else strings("加密备忘录", "Encrypt note")) },
+                headlineContent = {
+                    Text(stringResource(if (session.encrypted) R.string.editor_remove_encryption else R.string.editor_encrypt_note))
+                },
                 leadingContent = { Icon(if (session.encrypted) Icons.Outlined.LockOpen else Icons.Outlined.Lock, null) },
                 modifier = Modifier.clickable {
                     moreSheetVisible = false
@@ -623,18 +642,18 @@ fun NoteEditorScreen(
                 },
             )
             ListItem(
-                headlineContent = { Text(strings("移动到分组", "Move to group")) },
+                headlineContent = { Text(stringResource(R.string.editor_move_to_group)) },
                 leadingContent = { Icon(Icons.AutoMirrored.Outlined.InsertDriveFile, null) },
                 modifier = Modifier.clickable { moreSheetVisible = false; categorySheetVisible = true },
             )
             ListItem(
-                headlineContent = { Text(strings("导出", "Export")) },
+                headlineContent = { Text(stringResource(R.string.editor_export)) },
                 leadingContent = { Icon(Icons.Outlined.SaveAlt, null) },
                 modifier = Modifier.clickable { moreSheetVisible = false; exportSheetVisible = true },
             )
             HorizontalDivider()
             ListItem(
-                headlineContent = { Text(strings("移到最近删除", "Move to recently deleted"), color = MaterialTheme.colorScheme.error) },
+                headlineContent = { Text(stringResource(R.string.editor_move_to_recently_deleted), color = MaterialTheme.colorScheme.error) },
                 leadingContent = { Icon(Icons.Outlined.Delete, null, tint = MaterialTheme.colorScheme.error) },
                 modifier = Modifier.clickable {
                     moreSheetVisible = false
@@ -655,14 +674,14 @@ fun NoteEditorScreen(
             containerColor = MaterialTheme.colorScheme.surface,
         ) {
             Text(
-                strings("导出", "Export"),
+                stringResource(R.string.editor_export),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
             listOf(
-                Triple(strings("Word 文档", "Word document"), ".docx", ExportFormat.DOCX),
-                Triple("Markdown", ".md", ExportFormat.MARKDOWN),
-                Triple(strings("纯文本", "Plain text"), ".txt", ExportFormat.TEXT),
+                Triple(stringResource(R.string.editor_word_document), ".docx", ExportFormat.DOCX),
+                Triple(stringResource(R.string.editor_markdown), ".md", ExportFormat.MARKDOWN),
+                Triple(stringResource(R.string.editor_plain_text), ".txt", ExportFormat.TEXT),
             ).forEach { (label, extension, format) ->
                 ListItem(
                     headlineContent = { Text(label) },
@@ -676,9 +695,9 @@ fun NoteEditorScreen(
     }
     if (encryptionDialog) {
         PasswordDialog(
-            title = strings("加密这篇备忘录", "Encrypt this note"),
-            body = strings("标题、正文、搜索索引和插入的图片都会加密。密码无法找回，请妥善保存。", "The title, note text, search index, and inserted photos will be encrypted. The password cannot be recovered."),
-            confirmLabel = strings("加密", "Encrypt"),
+            title = stringResource(R.string.editor_encrypt_this_note),
+            body = stringResource(R.string.editor_encryption_description),
+            confirmLabel = stringResource(R.string.editor_encrypt),
             onDismiss = { encryptionDialog = false },
             onConfirm = {
                 onEncrypt(it)
@@ -691,20 +710,17 @@ fun NoteEditorScreen(
         AlertDialog(
             onDismissRequest = { deleteConfirm = false },
             icon = { Icon(Icons.Outlined.Delete, null) },
-            title = { Text(strings("移到最近删除？", "Move to recently deleted?")) },
-            text = { Text(strings("可以在设置的保留期内恢复。", "It can be restored during the configured retention period.")) },
-            confirmButton = { TextButton(onClick = { deleteConfirm = false; onDelete(null) }) { Text(strings("删除", "Delete")) } },
-            dismissButton = { TextButton(onClick = { deleteConfirm = false }) { Text(strings("取消", "Cancel")) } },
+            title = { Text(stringResource(R.string.editor_move_to_recently_deleted_question)) },
+            text = { Text(stringResource(R.string.editor_recently_deleted_restore_description)) },
+            confirmButton = { TextButton(onClick = { deleteConfirm = false; onDelete(null) }) { Text(stringResource(R.string.editor_delete)) } },
+            dismissButton = { TextButton(onClick = { deleteConfirm = false }) { Text(stringResource(R.string.editor_cancel)) } },
         )
     }
     if (deletePasswordDialog) {
         PasswordDialog(
-            title = strings("删除加密备忘录", "Delete encrypted note"),
-            body = strings(
-                "输入这篇备忘录的密码后，才能移到最近删除。",
-                "Enter this note's password before moving it to recently deleted.",
-            ),
-            confirmLabel = strings("删除", "Delete"),
+            title = stringResource(R.string.editor_delete_encrypted_note),
+            body = stringResource(R.string.editor_delete_encrypted_note_description),
+            confirmLabel = stringResource(R.string.editor_delete),
             onDismiss = { deletePasswordDialog = false },
             onConfirm = onDelete,
         )
@@ -725,7 +741,6 @@ private fun EditorToolbar(
     onAddBulletList: () -> Unit,
     onAddChecklist: () -> Unit,
 ) {
-    val strings = LocalAppStrings.current
     var styleSheet by remember { mutableStateOf(false) }
     var insertSheet by remember { mutableStateOf(false) }
     var colorSheet by remember { mutableStateOf(false) }
@@ -745,13 +760,13 @@ private fun EditorToolbar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            IconButton(onClick = { styleSheet = true }) { Icon(Icons.Outlined.FormatSize, strings("文本样式", "Text style")) }
-            IconButton(onClick = { onFormat(FormatKind.BOLD, null) }) { Icon(Icons.Outlined.FormatBold, strings("加粗", "Bold")) }
-            IconButton(onClick = { onFormat(FormatKind.ITALIC, null) }) { Icon(Icons.Outlined.FormatItalic, strings("斜体", "Italic")) }
-            IconButton(onClick = { onFormat(FormatKind.UNDERLINE, null) }) { Icon(Icons.Outlined.FormatUnderlined, strings("下划线", "Underline")) }
-            IconButton(onClick = { onFormat(FormatKind.STRIKE, null) }) { Icon(Icons.Outlined.FormatStrikethrough, strings("删除线", "Strikethrough")) }
-            IconButton(onClick = { colorSheet = true }) { Icon(Icons.Outlined.FormatColorText, strings("文字颜色", "Text color")) }
-            FilledTonalIconButton(onClick = { insertSheet = true }) { Icon(Icons.Outlined.Add, strings("插入", "Insert")) }
+            IconButton(onClick = { styleSheet = true }) { Icon(Icons.Outlined.FormatSize, stringResource(R.string.editor_text_style)) }
+            IconButton(onClick = { onFormat(FormatKind.BOLD, null) }) { Icon(Icons.Outlined.FormatBold, stringResource(R.string.editor_bold)) }
+            IconButton(onClick = { onFormat(FormatKind.ITALIC, null) }) { Icon(Icons.Outlined.FormatItalic, stringResource(R.string.editor_italic)) }
+            IconButton(onClick = { onFormat(FormatKind.UNDERLINE, null) }) { Icon(Icons.Outlined.FormatUnderlined, stringResource(R.string.editor_underline)) }
+            IconButton(onClick = { onFormat(FormatKind.STRIKE, null) }) { Icon(Icons.Outlined.FormatStrikethrough, stringResource(R.string.editor_strikethrough)) }
+            IconButton(onClick = { colorSheet = true }) { Icon(Icons.Outlined.FormatColorText, stringResource(R.string.editor_text_color)) }
+            FilledTonalIconButton(onClick = { insertSheet = true }) { Icon(Icons.Outlined.Add, stringResource(R.string.editor_insert)) }
         }
     }
 
@@ -761,22 +776,22 @@ private fun EditorToolbar(
             containerColor = MaterialTheme.colorScheme.surface,
         ) {
             Text(
-                strings("文本样式", "Text style"),
+                stringResource(R.string.editor_text_style),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
             TextKind.entries.forEach { kind ->
                 ListItem(
-                    headlineContent = { Text(kind.label(strings)) },
+                    headlineContent = { Text(kind.label()) },
                     supportingContent = {
                         Text(
                             when (kind) {
-                                TextKind.TITLE -> strings("作为整篇备忘录标题", "Use as the note title")
-                                TextKind.BODY -> strings("普通正文", "Regular note text")
-                                TextKind.HEADING -> strings("正文中的小标题", "Heading inside the note")
-                                TextKind.SUBHEADING -> strings("次级标题或副标题", "Subheading")
-                                TextKind.QUOTE -> strings("引用文字", "Quoted text")
-                                TextKind.CHECKLIST -> strings("待办事项", "Checklist item")
+                                TextKind.TITLE -> stringResource(R.string.editor_text_kind_title_description)
+                                TextKind.BODY -> stringResource(R.string.editor_text_kind_body_description)
+                                TextKind.HEADING -> stringResource(R.string.editor_text_kind_heading_description)
+                                TextKind.SUBHEADING -> stringResource(R.string.editor_text_kind_subheading_description)
+                                TextKind.QUOTE -> stringResource(R.string.editor_text_kind_quote_description)
+                                TextKind.CHECKLIST -> stringResource(R.string.editor_text_kind_checklist_description)
                             },
                         )
                     },
@@ -796,41 +811,41 @@ private fun EditorToolbar(
             containerColor = MaterialTheme.colorScheme.surface,
         ) {
             Text(
-                strings("插入内容", "Insert"),
+                stringResource(R.string.editor_insert),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
             ListItem(
-                headlineContent = { Text(strings("编号列表", "Numbered list")) },
+                headlineContent = { Text(stringResource(R.string.editor_numbered_list)) },
                 supportingContent = { Text("1.  2.  3.") },
                 leadingContent = { Icon(Icons.Outlined.FormatListNumbered, null) },
                 modifier = Modifier.clickable { insertSheet = false; onAddNumberedList() },
             )
             ListItem(
-                headlineContent = { Text(strings("圆点列表", "Bulleted list")) },
+                headlineContent = { Text(stringResource(R.string.editor_bulleted_list)) },
                 supportingContent = { Text("•  •  •") },
                 leadingContent = { Icon(Icons.AutoMirrored.Outlined.FormatListBulleted, null) },
                 modifier = Modifier.clickable { insertSheet = false; onAddBulletList() },
             )
             ListItem(
-                headlineContent = { Text(strings("待办清单", "Checklist")) },
-                supportingContent = { Text(strings("使用可勾选的复选框", "Uses checkable boxes")) },
+                headlineContent = { Text(stringResource(R.string.editor_checklist)) },
+                supportingContent = { Text(stringResource(R.string.editor_checklist_description)) },
                 leadingContent = { Icon(Icons.Outlined.CheckBox, null) },
                 modifier = Modifier.clickable { insertSheet = false; onAddChecklist() },
             )
             HorizontalDivider()
             ListItem(
-                headlineContent = { Text(strings("照片", "Photo")) },
+                headlineContent = { Text(stringResource(R.string.editor_photo)) },
                 leadingContent = { Icon(Icons.Outlined.Image, null) },
                 modifier = Modifier.clickable { insertSheet = false; onAddImage() },
             )
             ListItem(
-                headlineContent = { Text(strings("表格", "Table")) },
+                headlineContent = { Text(stringResource(R.string.editor_table)) },
                 leadingContent = { Icon(Icons.Outlined.TableChart, null) },
                 modifier = Modifier.clickable { insertSheet = false; onAddTable() },
             )
             ListItem(
-                headlineContent = { Text(strings("分界线", "Divider")) },
+                headlineContent = { Text(stringResource(R.string.editor_divider)) },
                 leadingContent = { Icon(Icons.Outlined.HorizontalRule, null) },
                 modifier = Modifier.clickable { insertSheet = false; onAddDivider() },
             )
@@ -843,7 +858,7 @@ private fun EditorToolbar(
             containerColor = MaterialTheme.colorScheme.surface,
         ) {
             Text(
-                strings("文字颜色", "Text color"),
+                stringResource(R.string.editor_text_color),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
@@ -856,7 +871,7 @@ private fun EditorToolbar(
                     onFormat(FormatKind.COLOR, null)
                     colorSheet = false
                 }) {
-                    Text(strings("默认", "Default"))
+                    Text(stringResource(R.string.editor_default))
                 }
                 colors.forEach { color ->
                     Box(
@@ -872,14 +887,25 @@ private fun EditorToolbar(
     }
 }
 
-private fun TextKind.label(strings: AppStrings): String = when (this) {
-        TextKind.TITLE -> strings("标题", "Title")
-        TextKind.BODY -> strings("正文", "Body")
-        TextKind.HEADING -> strings("小标题", "Heading")
-        TextKind.SUBHEADING -> strings("副标题", "Subheading")
-        TextKind.QUOTE -> strings("引用", "Quote")
-        TextKind.CHECKLIST -> strings("待办清单", "Checklist")
-    }
+@Composable
+private fun TextKind.label(): String = stringResource(
+    when (this) {
+        TextKind.TITLE -> R.string.editor_text_kind_title
+        TextKind.BODY -> R.string.editor_text_kind_body
+        TextKind.HEADING -> R.string.editor_text_kind_heading
+        TextKind.SUBHEADING -> R.string.editor_text_kind_subheading
+        TextKind.QUOTE -> R.string.editor_text_kind_quote
+        TextKind.CHECKLIST -> R.string.editor_text_kind_checklist
+    },
+)
+
+@Composable
+private fun Category.localizedName(): String = when {
+    id == "personal" && name == "个人" -> stringResource(R.string.editor_category_personal)
+    id == "work" && name == "工作" -> stringResource(R.string.editor_category_work)
+    id == "ideas" && name == "灵感" -> stringResource(R.string.editor_category_ideas)
+    else -> name
+}
 
 private data class FindMatch(val blockId: String, val start: Int, val end: Int, val cellIndex: Int? = null)
 
@@ -1328,7 +1354,6 @@ private fun PersistedImage(
     onReadAttachment: (NoteBlock, String?) -> AttachmentContent,
     modifier: Modifier = Modifier,
 ) {
-    val strings = LocalAppStrings.current
     val bitmap by produceState<ImageBitmap?>(initialValue = null, block.imageUri, block.imageEncrypted, password) {
         value = if (block.imageUri.isNullOrBlank()) null else withContext(Dispatchers.IO) {
             runCatching {
@@ -1348,12 +1373,17 @@ private fun PersistedImage(
     }
     if (bitmap == null) {
         Box(modifier, contentAlignment = Alignment.Center) {
-            Icon(Icons.Outlined.Image, strings("图片不可用", "Photo unavailable"), modifier = Modifier.size(52.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(
+                Icons.Outlined.Image,
+                stringResource(R.string.editor_photo_unavailable),
+                modifier = Modifier.size(52.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     } else {
         ComposeImage(
             bitmap = bitmap!!,
-            contentDescription = strings("笔记图片", "Note photo"),
+            contentDescription = stringResource(R.string.editor_note_photo),
             modifier = modifier.aspectRatio(bitmap!!.width.toFloat() / bitmap!!.height.coerceAtLeast(1)),
             contentScale = androidx.compose.ui.layout.ContentScale.Fit,
         )
@@ -1368,7 +1398,6 @@ private fun TableBlockEditor(
     activeMatch: FindMatch?,
     onFocused: () -> Unit,
 ) {
-    val strings = LocalAppStrings.current
     val rows = block.tableCells.ifEmpty { List(2) { List(2) { "" } } }
     Column(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -1413,15 +1442,19 @@ private fun TableBlockEditor(
                     val columns = rows.firstOrNull()?.size?.coerceAtLeast(1) ?: 2
                     onChange(block.copy(tableCells = rows + listOf(List(columns) { "" })))
                 },
-            ) { Text(strings("+ 行", "+ Row")) }
+            ) { Text(stringResource(R.string.editor_add_row)) }
             TextButton(
                 onClick = { onChange(block.copy(tableCells = rows.map { it + "" })) },
-            ) { Text(strings("+ 列", "+ Column")) }
+            ) { Text(stringResource(R.string.editor_add_column)) }
             if (rows.size > 1) {
-                TextButton(onClick = { onChange(block.copy(tableCells = rows.dropLast(1))) }) { Text(strings("− 行", "− Row")) }
+                TextButton(onClick = { onChange(block.copy(tableCells = rows.dropLast(1))) }) {
+                    Text(stringResource(R.string.editor_remove_row))
+                }
             }
             if ((rows.firstOrNull()?.size ?: 0) > 1) {
-                TextButton(onClick = { onChange(block.copy(tableCells = rows.map { it.dropLast(1) })) }) { Text(strings("− 列", "− Column")) }
+                TextButton(onClick = { onChange(block.copy(tableCells = rows.map { it.dropLast(1) })) }) {
+                    Text(stringResource(R.string.editor_remove_column))
+                }
             }
         }
     }

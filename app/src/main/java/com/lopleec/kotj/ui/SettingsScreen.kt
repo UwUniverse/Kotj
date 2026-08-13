@@ -19,7 +19,6 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Fingerprint
-import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.outlined.WarningAmber
@@ -41,13 +40,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.lopleec.kotj.data.AppLanguage
+import com.lopleec.kotj.R
 import com.lopleec.kotj.data.AppSettings
 import com.lopleec.kotj.data.ThemeMode
 import com.lopleec.kotj.data.NoteSort
 
-private enum class SettingsChoice { LANGUAGE, THEME, TRASH, SORT }
+private enum class SettingsChoice { THEME, TRASH, SORT }
 
 @Composable
 fun SettingsScreen(
@@ -55,7 +55,6 @@ fun SettingsScreen(
     onUpdate: (AppSettings) -> Unit,
     onBack: () -> Unit,
 ) {
-    val text = LocalAppStrings.current
     val context = LocalContext.current
     val versionName = remember(context) {
         runCatching {
@@ -69,10 +68,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text("设置", "Settings")) },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, text("返回", "Back"))
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.settings_back))
                     }
                 },
             )
@@ -82,27 +81,19 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(bottom = 32.dp),
         ) {
-            item { SectionTitle(text("外观与语言", "Appearance & language")) }
+            item { SectionTitle(stringResource(R.string.settings_section_appearance)) }
             item {
                 ListItem(
-                    headlineContent = { Text(text("语言", "Language")) },
-                    supportingContent = { Text(settings.language.label(text)) },
-                    leadingContent = { Icon(Icons.Outlined.Language, null) },
-                    modifier = Modifier.clickable { choice = SettingsChoice.LANGUAGE },
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text(text("主题", "Theme")) },
-                    supportingContent = { Text(settings.themeMode.label(text)) },
+                    headlineContent = { Text(stringResource(R.string.settings_theme)) },
+                    supportingContent = { Text(settings.themeMode.label()) },
                     leadingContent = { Icon(Icons.Outlined.DarkMode, null) },
                     modifier = Modifier.clickable { choice = SettingsChoice.THEME },
                 )
             }
             item {
                 ListItem(
-                    headlineContent = { Text(text("动态配色", "Dynamic color")) },
-                    supportingContent = { Text(text("使用系统壁纸配色", "Use colors from your wallpaper")) },
+                    headlineContent = { Text(stringResource(R.string.settings_dynamic_color)) },
+                    supportingContent = { Text(stringResource(R.string.settings_dynamic_color_summary)) },
                     leadingContent = { Icon(Icons.Outlined.AutoAwesome, null) },
                     trailingContent = {
                         Switch(
@@ -113,19 +104,16 @@ fun SettingsScreen(
                 )
             }
             item { HorizontalDivider() }
-            item { SectionTitle(text("安全", "Security")) }
+            item { SectionTitle(stringResource(R.string.settings_section_security)) }
             item {
                 ListItem(
-                    headlineContent = { Text(text("使用系统解锁", "Use system unlock")) },
+                    headlineContent = { Text(stringResource(R.string.settings_system_unlock)) },
                     supportingContent = {
                         Text(
                             if (systemUnlockAvailable) {
-                                text(
-                                    "直接用设备的指纹、人脸或锁屏凭据加密、解锁和确认手动删除，不再创建独立密码",
-                                    "Use device biometrics or your screen lock directly to encrypt, unlock, and confirm manual deletion; no separate password",
-                                )
+                                stringResource(R.string.settings_system_unlock_summary)
                             } else {
-                                text("需要 Android 11 及已设置的安全锁屏", "Requires Android 11 and a secure screen lock")
+                                stringResource(R.string.settings_system_unlock_unavailable)
                             },
                         )
                     },
@@ -140,19 +128,19 @@ fun SettingsScreen(
                 )
             }
             item { HorizontalDivider() }
-            item { SectionTitle(text("备忘录", "Notes")) }
+            item { SectionTitle(stringResource(R.string.settings_section_notes)) }
             item {
                 ListItem(
-                    headlineContent = { Text(text("备忘录排序", "Note sorting")) },
-                    supportingContent = { Text(settings.noteSort.label(text)) },
+                    headlineContent = { Text(stringResource(R.string.settings_note_sorting)) },
+                    supportingContent = { Text(settings.noteSort.label()) },
                     leadingContent = { Icon(Icons.AutoMirrored.Outlined.Sort, null) },
                     modifier = Modifier.clickable { choice = SettingsChoice.SORT },
                 )
             }
             item {
                 ListItem(
-                    headlineContent = { Text(text("按日期分组", "Group by date")) },
-                    supportingContent = { Text(text("显示今天、昨天、最近日期、月份和年份", "Show Today, Yesterday, recent periods, months, and years")) },
+                    headlineContent = { Text(stringResource(R.string.settings_group_by_date)) },
+                    supportingContent = { Text(stringResource(R.string.settings_group_by_date_summary)) },
                     leadingContent = { Icon(Icons.Outlined.ViewAgenda, null) },
                     trailingContent = {
                         Switch(
@@ -164,8 +152,8 @@ fun SettingsScreen(
             }
             item {
                 ListItem(
-                    headlineContent = { Text(text("删除前确认", "Confirm before deleting")) },
-                    supportingContent = { Text(text("避免误删备忘录", "Prevent accidental deletion")) },
+                    headlineContent = { Text(stringResource(R.string.settings_confirm_before_deleting)) },
+                    supportingContent = { Text(stringResource(R.string.settings_confirm_before_deleting_summary)) },
                     leadingContent = { Icon(Icons.Outlined.WarningAmber, null) },
                     trailingContent = {
                         Switch(
@@ -177,24 +165,19 @@ fun SettingsScreen(
             }
             item {
                 ListItem(
-                    headlineContent = { Text(text("最近删除保留时长", "Recently deleted retention")) },
-                    supportingContent = { Text(retentionLabel(settings.trashRetentionDays, text)) },
+                    headlineContent = { Text(stringResource(R.string.settings_trash_retention)) },
+                    supportingContent = { Text(retentionLabel(settings.trashRetentionDays)) },
                     leadingContent = { Icon(Icons.Outlined.DeleteSweep, null) },
                     modifier = Modifier.clickable { choice = SettingsChoice.TRASH },
                 )
             }
             item { HorizontalDivider() }
-            item { SectionTitle(text("关于", "About")) }
+            item { SectionTitle(stringResource(R.string.settings_section_about)) }
             item {
                 ListItem(
                     headlineContent = { Text("Kotj") },
                     supportingContent = {
-                        Text(
-                            text(
-                                "版本 $versionName · 本地离线备忘录",
-                                "Version $versionName · Offline local notes",
-                            ),
-                        )
+                        Text(stringResource(R.string.settings_about_summary, versionName))
                     },
                     leadingContent = { Icon(Icons.Outlined.Info, null) },
                 )
@@ -203,30 +186,23 @@ fun SettingsScreen(
     }
 
     when (choice) {
-        SettingsChoice.LANGUAGE -> ChoiceSheet(
-            title = text("语言", "Language"),
-            options = AppLanguage.entries.map { it to it.label(text) },
-            selected = settings.language,
-            onDismiss = { choice = null },
-            onSelect = { onUpdate(settings.copy(language = it)); choice = null },
-        )
         SettingsChoice.THEME -> ChoiceSheet(
-            title = text("主题", "Theme"),
-            options = ThemeMode.entries.map { it to it.label(text) },
+            title = stringResource(R.string.settings_theme),
+            options = ThemeMode.entries.map { it to it.label() },
             selected = settings.themeMode,
             onDismiss = { choice = null },
             onSelect = { onUpdate(settings.copy(themeMode = it)); choice = null },
         )
         SettingsChoice.TRASH -> ChoiceSheet(
-            title = text("最近删除保留时长", "Recently deleted retention"),
-            options = listOf(7, 30, 90, 0).map { it to retentionLabel(it, text) },
+            title = stringResource(R.string.settings_trash_retention),
+            options = listOf(7, 30, 90, 0).map { it to retentionLabel(it) },
             selected = settings.trashRetentionDays,
             onDismiss = { choice = null },
             onSelect = { onUpdate(settings.copy(trashRetentionDays = it)); choice = null },
         )
         SettingsChoice.SORT -> ChoiceSheet(
-            title = text("备忘录排序", "Note sorting"),
-            options = NoteSort.entries.map { it to it.label(text) },
+            title = stringResource(R.string.settings_note_sorting),
+            options = NoteSort.entries.map { it to it.label() },
             selected = settings.noteSort,
             onDismiss = { choice = null },
             onSelect = { onUpdate(settings.copy(noteSort = it)); choice = null },
@@ -235,9 +211,10 @@ fun SettingsScreen(
     }
 }
 
-private fun NoteSort.label(text: AppStrings): String = when (this) {
-    NoteSort.UPDATED -> text("按日期", "By date")
-    NoteSort.TITLE -> text("按首字母", "Alphabetically")
+@Composable
+private fun NoteSort.label(): String = when (this) {
+    NoteSort.UPDATED -> stringResource(R.string.settings_sort_by_date)
+    NoteSort.TITLE -> stringResource(R.string.settings_sort_alphabetically)
 }
 
 @Composable
@@ -274,21 +251,17 @@ private fun <T> ChoiceSheet(
     }
 }
 
-private fun AppLanguage.label(text: AppStrings): String = when (this) {
-    AppLanguage.SYSTEM -> text("跟随系统", "System default")
-    AppLanguage.CHINESE -> "简体中文"
-    AppLanguage.ENGLISH -> "English"
+@Composable
+private fun ThemeMode.label(): String = when (this) {
+    ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_system)
+    ThemeMode.LIGHT -> stringResource(R.string.settings_theme_light)
+    ThemeMode.DARK -> stringResource(R.string.settings_theme_dark)
 }
 
-private fun ThemeMode.label(text: AppStrings): String = when (this) {
-    ThemeMode.SYSTEM -> text("跟随系统", "System default")
-    ThemeMode.LIGHT -> text("浅色", "Light")
-    ThemeMode.DARK -> text("深色", "Dark")
-}
-
-private fun retentionLabel(days: Int, text: AppStrings): String = when (days) {
-    7 -> text("7 天", "7 days")
-    30 -> text("30 天", "30 days")
-    90 -> text("90 天", "90 days")
-    else -> text("永久保留", "Keep forever")
+@Composable
+private fun retentionLabel(days: Int): String = when (days) {
+    7 -> stringResource(R.string.settings_retention_7_days)
+    30 -> stringResource(R.string.settings_retention_30_days)
+    90 -> stringResource(R.string.settings_retention_90_days)
+    else -> stringResource(R.string.settings_retention_forever)
 }

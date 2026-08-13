@@ -11,16 +11,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import com.lopleec.kotj.security.SystemUnlockStore
 import com.lopleec.kotj.ui.KotjApp
-import com.lopleec.kotj.ui.AppStrings
-import com.lopleec.kotj.ui.LocalAppStrings
 import com.lopleec.kotj.ui.NotesViewModel
 import com.lopleec.kotj.ui.SecureWindowEffect
 import com.lopleec.kotj.ui.SecureWindowGuard
-import com.lopleec.kotj.ui.isEnglish
 import com.lopleec.kotj.ui.theme.KotjTheme
 
 class MainActivity : ComponentActivity() {
@@ -52,16 +48,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
             KotjTheme(themeMode = settings.themeMode, useDynamicColor = settings.useDynamicColor) {
-                CompositionLocalProvider(LocalAppStrings provides AppStrings(isEnglish(settings.language))) {
-                    KotjApp(
-                        viewModel = notesViewModel,
-                        onSystemUnlock = ::requestSystemUnlock,
-                        onSystemEncrypt = ::requestSystemEncryption,
-                        onSystemDeleteEditor = ::requestSystemDeleteEditor,
-                        onSystemMoveToTrash = ::requestSystemMoveToTrash,
-                        onSystemDeleteForever = ::requestSystemDeleteForever,
-                    )
-                }
+                KotjApp(
+                    viewModel = notesViewModel,
+                    onSystemUnlock = ::requestSystemUnlock,
+                    onSystemEncrypt = ::requestSystemEncryption,
+                    onSystemDeleteEditor = ::requestSystemDeleteEditor,
+                    onSystemMoveToTrash = ::requestSystemMoveToTrash,
+                    onSystemDeleteForever = ::requestSystemDeleteForever,
+                )
             }
         }
         notesViewModel.openExternalIntent(intent)
@@ -126,7 +120,7 @@ class MainActivity : ComponentActivity() {
     ) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             onCancelled()
-            notesViewModel.showMessage("此设备不支持系统解锁", "System unlock is not supported on this device")
+            notesViewModel.showMessage(R.string.system_unlock_not_supported)
             return
         }
         requestSystemAuthorizationApi30(noteId, onAuthorized, onCancelled)
@@ -144,15 +138,14 @@ class MainActivity : ComponentActivity() {
             if (!systemOnly) systemUnlockStore.remove(noteId)
             onCancelled()
             notesViewModel.showMessage(
-                if (systemOnly) "系统解锁密钥已失效，无法解密这篇备忘录" else "系统解锁信息已失效；再次打开可输入原密码",
-                if (systemOnly) "The system unlock key expired, so this note cannot be decrypted" else "System unlock expired; open it again to enter the original password",
+                if (systemOnly) R.string.system_unlock_key_expired else R.string.system_unlock_data_expired,
             )
             return
         }
         authenticateWithSystem(
             cipher = cipher,
-            title = localized("解锁加密备忘录", "Unlock encrypted note"),
-            subtitle = localized("使用指纹、人脸或锁屏凭据", "Use biometrics or your screen lock"),
+            title = getString(R.string.biometric_unlock_title),
+            subtitle = getString(R.string.biometric_unlock_subtitle),
             reportCancellation = false,
             onCancelled = onCancelled,
         ) { authenticatedCipher ->
@@ -162,8 +155,7 @@ class MainActivity : ComponentActivity() {
                     if (!systemOnly) systemUnlockStore.remove(noteId)
                     onCancelled()
                     notesViewModel.showMessage(
-                        if (systemOnly) "系统解锁密钥已失效，无法解密这篇备忘录" else "系统解锁信息已失效；再次打开可输入原密码",
-                        if (systemOnly) "The system unlock key expired, so this note cannot be decrypted" else "System unlock expired; open it again to enter the original password",
+                        if (systemOnly) R.string.system_unlock_key_expired else R.string.system_unlock_data_expired,
                     )
                 }
         }
@@ -171,7 +163,7 @@ class MainActivity : ComponentActivity() {
 
     private fun requestSystemEncryption(noteId: String) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            notesViewModel.showMessage("此设备不支持系统解锁", "System unlock is not supported on this device")
+            notesViewModel.showMessage(R.string.system_unlock_not_supported)
             return
         }
         requestSystemEncryptionApi30(noteId)
@@ -182,13 +174,13 @@ class MainActivity : ComponentActivity() {
         val editor = notesViewModel.state.editor
         if (editor == null || editor.noteId != noteId || editor.encrypted) return
         val cipher = runCatching { systemUnlockStore.newEncryptionCipher() }.getOrElse {
-            notesViewModel.showMessage("无法启用系统解锁", "Could not enable system unlock")
+            notesViewModel.showMessage(R.string.system_unlock_enable_failed)
             return
         }
         authenticateWithSystem(
             cipher = cipher,
-            title = localized("加密这篇备忘录", "Encrypt this note"),
-            subtitle = localized("使用指纹、人脸或锁屏凭据", "Use biometrics or your screen lock"),
+            title = getString(R.string.biometric_encrypt_title),
+            subtitle = getString(R.string.biometric_unlock_subtitle),
             reportCancellation = false,
         ) { authenticatedCipher ->
             val password = systemUnlockStore.generateRandomPassword()
@@ -205,7 +197,7 @@ class MainActivity : ComponentActivity() {
                 }
             }.onFailure {
                 systemUnlockStore.remove(noteId)
-                notesViewModel.showMessage("无法保存系统解锁信息", "Could not save system unlock data")
+                notesViewModel.showMessage(R.string.system_unlock_save_failed)
             }
         }
     }
@@ -219,23 +211,23 @@ class MainActivity : ComponentActivity() {
     private fun enrollSystemUnlockApi30(noteId: String, password: CharArray) {
         val cipher = runCatching { systemUnlockStore.newEncryptionCipher() }.getOrElse {
             password.fill('\u0000')
-            notesViewModel.showMessage("无法启用系统解锁", "Could not enable system unlock")
+            notesViewModel.showMessage(R.string.system_unlock_enable_failed)
             return
         }
         authenticateWithSystem(
             cipher = cipher,
-            title = localized("为这篇备忘录启用系统解锁", "Enable system unlock for this note"),
-            subtitle = localized("验证指纹、人脸或锁屏凭据", "Verify biometrics or your screen lock"),
+            title = getString(R.string.biometric_enable_title),
+            subtitle = getString(R.string.biometric_verify_subtitle),
             reportCancellation = false,
             onCancelled = { password.fill('\u0000') },
         ) { authenticatedCipher ->
             runCatching { systemUnlockStore.savePassword(noteId, password, authenticatedCipher) }
                 .onSuccess {
-                    notesViewModel.showMessage("已为这篇备忘录启用系统解锁", "System unlock enabled for this note")
+                    notesViewModel.showMessage(R.string.system_unlock_enabled)
                 }
                 .onFailure {
                     password.fill('\u0000')
-                    notesViewModel.showMessage("无法保存系统解锁信息", "Could not save system unlock data")
+                    notesViewModel.showMessage(R.string.system_unlock_save_failed)
                 }
         }
     }
@@ -263,7 +255,7 @@ class MainActivity : ComponentActivity() {
                     val authenticatedCipher = result.cryptoObject?.cipher
                     if (authenticatedCipher == null) {
                         onCancelled()
-                        notesViewModel.showMessage("系统认证未返回密钥", "System authentication did not return a key")
+                        notesViewModel.showMessage(R.string.system_authentication_no_key)
                     } else {
                         onSuccess(authenticatedCipher)
                     }
@@ -272,7 +264,7 @@ class MainActivity : ComponentActivity() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     onCancelled()
                     if (reportCancellation || !isCancellationError(errorCode)) {
-                        notesViewModel.showMessage("系统解锁失败：$errString", "System unlock failed: $errString")
+                        notesViewModel.showMessage(R.string.system_unlock_failed, errString)
                     }
                 }
             }
@@ -285,12 +277,9 @@ class MainActivity : ComponentActivity() {
             )
         }.onFailure {
             onCancelled()
-            notesViewModel.showMessage("无法启动系统认证", "Could not start system authentication")
+            notesViewModel.showMessage(R.string.system_authentication_start_failed)
         }
     }
-
-    private fun localized(chinese: String, english: String): String =
-        if (isEnglish(notesViewModel.state.settings.language)) english else chinese
 
     @RequiresApi(Build.VERSION_CODES.P)
     private fun isCancellationError(errorCode: Int): Boolean =
