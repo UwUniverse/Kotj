@@ -102,7 +102,7 @@ The project applies security hardening appropriate for a local notes app, but it
 ### Requirements
 
 - JDK 21
-- Android SDK 36.1
+- Android SDK 37
 - Android Studio or Android SDK command-line tools
 
 ```bash

@@ -102,7 +102,7 @@ Kotj 是一款功能完整的原生 Android 备忘录应用。它借鉴 iOS 备�
 ### 环境要求
 
 - JDK 21
-- Android SDK 36.1
+- Android SDK 37
 - Android Studio 或命令行 Android SDK 工具
 
 ```bash
