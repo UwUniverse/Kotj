@@ -84,6 +84,7 @@ import com.lopleec.kotj.model.Category
 import com.lopleec.kotj.model.NoteSummary
 import com.lopleec.kotj.data.NoteSort
 import kotlinx.coroutines.launch
+import org.uwuaosp.compose.settingslib.SettingsToolbarActionButton
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
@@ -355,18 +356,6 @@ private fun LibraryScreen(
                     icon = { Icon(Icons.Outlined.Delete, null) },
                     modifier = Modifier.padding(horizontal = 12.dp),
                 )
-                Spacer(Modifier.weight(1f))
-                HorizontalDivider()
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.library_settings)) },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        onOpenSettings()
-                    },
-                    icon = { Icon(Icons.Outlined.Settings, null) },
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-                )
             }
         },
     ) {
@@ -392,6 +381,13 @@ private fun LibraryScreen(
                                     if (!searchVisible) viewModel.setQuery("")
                                 }) { Icon(if (searchVisible) Icons.AutoMirrored.Outlined.ArrowBack else Icons.Outlined.Search, stringResource(R.string.library_global_search)) }
                             }
+                            SettingsToolbarActionButton(
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = stringResource(R.string.library_settings),
+                                onClick = onOpenSettings,
+                                buttonSize = 64.dp,
+                                containerSize = 48.dp,
+                            )
                         },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
                     )
