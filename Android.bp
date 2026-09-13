@@ -1,0 +1,60 @@
+package {
+    default_applicable_licenses: ["Kotj_license"],
+}
+
+license {
+    name: "Kotj_license",
+    visibility: [":__subpackages__"],
+    license_kinds: ["SPDX-license-identifier-GPL-3.0"],
+    license_text: ["LICENSE"],
+}
+
+android_app {
+    name: "Kotj",
+
+    srcs: ["app/src/main/java/**/*.kt"],
+    resource_dirs: ["app/src/main/res"],
+    manifest: "app/src/main/AndroidManifest.xml",
+
+    sdk_version: "current",
+    min_sdk_version: "26",
+    target_sdk_version: "36",
+    product_specific: true,
+    certificate: "platform",
+
+    static_libs: [
+        "androidx.activity_activity",
+        "androidx.activity_activity-compose",
+        "androidx.activity_activity-ktx",
+        "androidx.compose.foundation_foundation",
+        "androidx.compose.foundation_foundation-layout",
+        "androidx.compose.material3_material3",
+        "androidx.compose.material_material-icons-extended",
+        "androidx.compose.runtime_runtime",
+        "androidx.compose.runtime_runtime-saveable",
+        "androidx.compose.ui_ui",
+        "androidx.compose.ui_ui-graphics",
+        "androidx.core_core-ktx",
+        "androidx.lifecycle_lifecycle-runtime-ktx",
+        "androidx.lifecycle_lifecycle-viewmodel-compose",
+        "androidx.lifecycle_lifecycle-viewmodel-ktx",
+        "kotlin-stdlib",
+        "kotlinx_coroutines",
+        "kotlinx_coroutines_android",
+    ],
+
+    kotlincflags: ["-Xjvm-default=all"],
+
+    aaptflags: [
+        "--version-code",
+        "2",
+        "--version-name",
+        "1.1.0",
+    ],
+
+    optimize: {
+        optimize: true,
+        proguard_flags_files: ["app/proguard-rules.pro"],
+        shrink_resources: true,
+    },
+}

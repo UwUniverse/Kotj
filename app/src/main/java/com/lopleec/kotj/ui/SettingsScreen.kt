@@ -46,7 +46,6 @@ import com.lopleec.kotj.data.AppLanguage
 import com.lopleec.kotj.data.AppSettings
 import com.lopleec.kotj.data.ThemeMode
 import com.lopleec.kotj.data.NoteSort
-import com.lopleec.kotj.BuildConfig
 
 private enum class SettingsChoice { LANGUAGE, THEME, TRASH, SORT }
 
@@ -58,6 +57,11 @@ fun SettingsScreen(
 ) {
     val text = LocalAppStrings.current
     val context = LocalContext.current
+    val versionName = remember(context) {
+        runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull() ?: "1.1.0"
+    }
     val systemUnlockAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
         (context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager).isDeviceSecure
     var choice by remember { mutableStateOf<SettingsChoice?>(null) }
@@ -187,8 +191,8 @@ fun SettingsScreen(
                     supportingContent = {
                         Text(
                             text(
-                                "版本 ${BuildConfig.VERSION_NAME} · 本地离线备忘录",
-                                "Version ${BuildConfig.VERSION_NAME} · Offline local notes",
+                                "版本 $versionName · 本地离线备忘录",
+                                "Version $versionName · Offline local notes",
                             ),
                         )
                     },
