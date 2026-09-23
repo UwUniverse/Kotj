@@ -41,6 +41,7 @@ android_app {
         "kotlin-stdlib",
         "kotlinx_coroutines",
         "kotlinx_coroutines_android",
+        "uwuComposeSettingsLib",
     ],
 
     kotlincflags: ["-Xjvm-default=all"],

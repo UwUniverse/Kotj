@@ -36,7 +36,6 @@ import com.lopleec.kotj.R
 import com.lopleec.kotj.data.AppSettings
 import com.lopleec.kotj.data.ThemeMode
 import com.lopleec.kotj.data.NoteSort
-import com.lopleec.kotj.BuildConfig
 import org.uwuaosp.compose.settingslib.PreferenceRow
 import org.uwuaosp.compose.settingslib.SettingsHomepageIcon
 import org.uwuaosp.compose.settingslib.SettingsScaffold
@@ -53,6 +52,11 @@ fun SettingsScreen(
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
+    val versionName = remember(context) {
+        runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull() ?: "1.1.0"
+    }
     val systemUnlockAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
         (context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager).isDeviceSecure
     var choice by remember { mutableStateOf<SettingsChoice?>(null) }
@@ -143,7 +147,7 @@ fun SettingsScreen(
             item {
                 PreferenceRow(
                     title = stringResource(R.string.settings_about_kotj),
-                    summary = stringResource(R.string.settings_about_summary, BuildConfig.VERSION_NAME),
+                    summary = stringResource(R.string.settings_about_summary, versionName),
                     iconContent = { SettingsHomepageIcon(Icons.Outlined.Info) },
                     onClick = {},
                 )
