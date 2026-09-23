@@ -37,12 +37,11 @@ import com.lopleec.kotj.data.AppSettings
 import com.lopleec.kotj.data.ThemeMode
 import com.lopleec.kotj.data.NoteSort
 import com.lopleec.kotj.BuildConfig
-import org.uwuaosp.compose.settingslib.PreferenceGroupSpacer
-import org.uwuaosp.compose.settingslib.PreferencePosition
 import org.uwuaosp.compose.settingslib.PreferenceRow
-import org.uwuaosp.compose.settingslib.SettingsCategory
 import org.uwuaosp.compose.settingslib.SettingsHomepageIcon
 import org.uwuaosp.compose.settingslib.SettingsScaffold
+import org.uwuaosp.compose.settingslib.SettingsSection
+import org.uwuaosp.compose.settingslib.SettingsSectionSpacer
 import org.uwuaosp.compose.settingslib.SwitchPreferenceRow
 
 private enum class SettingsChoice { THEME, TRASH, SORT }
@@ -63,80 +62,93 @@ fun SettingsScreen(
         showBackButton = true,
         onNavigateUp = onBack,
     ) {
-        SettingsCategory(title = stringResource(R.string.settings_section_appearance))
-        PreferenceRow(
-            title = stringResource(R.string.settings_theme),
-            summary = settings.themeMode.label(),
-            iconContent = { SettingsHomepageIcon(Icons.Outlined.DarkMode) },
-            position = PreferencePosition.Top,
-            onClick = { choice = SettingsChoice.THEME },
-        )
-        PreferenceGroupSpacer()
-        SwitchPreferenceRow(
-            title = stringResource(R.string.settings_dynamic_color),
-            summary = stringResource(R.string.settings_dynamic_color_summary),
-            checked = settings.useDynamicColor,
-            onCheckedChange = { onUpdate(settings.copy(useDynamicColor = it)) },
-            iconContent = { SettingsHomepageIcon(Icons.Outlined.AutoAwesome) },
-            position = PreferencePosition.Bottom,
-        )
+        SettingsSection(title = stringResource(R.string.settings_section_appearance)) {
+            item {
+                PreferenceRow(
+                    title = stringResource(R.string.settings_theme),
+                    summary = settings.themeMode.label(),
+                    iconContent = { SettingsHomepageIcon(Icons.Outlined.DarkMode) },
+                    onClick = { choice = SettingsChoice.THEME },
+                )
+            }
+            item {
+                SwitchPreferenceRow(
+                    title = stringResource(R.string.settings_dynamic_color),
+                    summary = stringResource(R.string.settings_dynamic_color_summary),
+                    checked = settings.useDynamicColor,
+                    onCheckedChange = { onUpdate(settings.copy(useDynamicColor = it)) },
+                    iconContent = { SettingsHomepageIcon(Icons.Outlined.AutoAwesome) },
+                )
+            }
+        }
 
-        SettingsCategory(title = stringResource(R.string.settings_section_security))
-        SwitchPreferenceRow(
-            title = stringResource(R.string.settings_system_unlock),
-            summary = if (systemUnlockAvailable) {
-                stringResource(R.string.settings_system_unlock_summary)
-            } else {
-                stringResource(R.string.settings_system_unlock_unavailable)
-            },
-            checked = settings.useSystemUnlock && systemUnlockAvailable,
-            onCheckedChange = { onUpdate(settings.copy(useSystemUnlock = it)) },
-            enabled = systemUnlockAvailable,
-            iconContent = { SettingsHomepageIcon(Icons.Outlined.Fingerprint) },
-        )
+        SettingsSectionSpacer()
+        SettingsSection(title = stringResource(R.string.settings_section_security)) {
+            item {
+                SwitchPreferenceRow(
+                    title = stringResource(R.string.settings_system_unlock),
+                    summary = if (systemUnlockAvailable) {
+                        stringResource(R.string.settings_system_unlock_summary)
+                    } else {
+                        stringResource(R.string.settings_system_unlock_unavailable)
+                    },
+                    checked = settings.useSystemUnlock && systemUnlockAvailable,
+                    onCheckedChange = { onUpdate(settings.copy(useSystemUnlock = it)) },
+                    enabled = systemUnlockAvailable,
+                    iconContent = { SettingsHomepageIcon(Icons.Outlined.Fingerprint) },
+                )
+            }
+        }
 
-        SettingsCategory(title = stringResource(R.string.settings_section_notes))
-        PreferenceRow(
-            title = stringResource(R.string.settings_note_sorting),
-            summary = settings.noteSort.label(),
-            iconContent = { SettingsHomepageIcon(Icons.AutoMirrored.Outlined.Sort) },
-            position = PreferencePosition.Top,
-            onClick = { choice = SettingsChoice.SORT },
-        )
-        PreferenceGroupSpacer()
-        SwitchPreferenceRow(
-            title = stringResource(R.string.settings_group_by_date),
-            summary = stringResource(R.string.settings_group_by_date_summary),
-            checked = settings.groupNotesByDate,
-            onCheckedChange = { onUpdate(settings.copy(groupNotesByDate = it)) },
-            iconContent = { SettingsHomepageIcon(Icons.Outlined.ViewAgenda) },
-            position = PreferencePosition.Middle,
-        )
-        PreferenceGroupSpacer()
-        SwitchPreferenceRow(
-            title = stringResource(R.string.settings_confirm_before_deleting),
-            summary = stringResource(R.string.settings_confirm_before_deleting_summary),
-            checked = settings.confirmBeforeDelete,
-            onCheckedChange = { onUpdate(settings.copy(confirmBeforeDelete = it)) },
-            iconContent = { SettingsHomepageIcon(Icons.Outlined.WarningAmber) },
-            position = PreferencePosition.Middle,
-        )
-        PreferenceGroupSpacer()
-        PreferenceRow(
-            title = stringResource(R.string.settings_trash_retention),
-            summary = retentionLabel(settings.trashRetentionDays),
-            iconContent = { SettingsHomepageIcon(Icons.Outlined.DeleteSweep) },
-            position = PreferencePosition.Bottom,
-            onClick = { choice = SettingsChoice.TRASH },
-        )
+        SettingsSectionSpacer()
+        SettingsSection(title = stringResource(R.string.settings_section_notes)) {
+            item {
+                PreferenceRow(
+                    title = stringResource(R.string.settings_note_sorting),
+                    summary = settings.noteSort.label(),
+                    iconContent = { SettingsHomepageIcon(Icons.AutoMirrored.Outlined.Sort) },
+                    onClick = { choice = SettingsChoice.SORT },
+                )
+            }
+            item {
+                SwitchPreferenceRow(
+                    title = stringResource(R.string.settings_group_by_date),
+                    summary = stringResource(R.string.settings_group_by_date_summary),
+                    checked = settings.groupNotesByDate,
+                    onCheckedChange = { onUpdate(settings.copy(groupNotesByDate = it)) },
+                    iconContent = { SettingsHomepageIcon(Icons.Outlined.ViewAgenda) },
+                )
+            }
+            item {
+                SwitchPreferenceRow(
+                    title = stringResource(R.string.settings_confirm_before_deleting),
+                    summary = stringResource(R.string.settings_confirm_before_deleting_summary),
+                    checked = settings.confirmBeforeDelete,
+                    onCheckedChange = { onUpdate(settings.copy(confirmBeforeDelete = it)) },
+                    iconContent = { SettingsHomepageIcon(Icons.Outlined.WarningAmber) },
+                )
+            }
+            item {
+                PreferenceRow(
+                    title = stringResource(R.string.settings_trash_retention),
+                    summary = retentionLabel(settings.trashRetentionDays),
+                    iconContent = { SettingsHomepageIcon(Icons.Outlined.DeleteSweep) },
+                    onClick = { choice = SettingsChoice.TRASH },
+                )
+            }
+        }
 
-        SettingsCategory(title = stringResource(R.string.settings_section_about))
-        PreferenceRow(
-            title = stringResource(R.string.settings_about_kotj),
-            summary = stringResource(R.string.settings_about_summary, BuildConfig.VERSION_NAME),
-            iconContent = { SettingsHomepageIcon(Icons.Outlined.Info) },
-            onClick = {},
-        )
+        SettingsSectionSpacer()
+        SettingsSection(title = stringResource(R.string.settings_section_about)) {
+            item {
+                PreferenceRow(
+                    title = stringResource(R.string.settings_about_kotj),
+                    summary = stringResource(R.string.settings_about_summary, BuildConfig.VERSION_NAME),
+                    iconContent = { SettingsHomepageIcon(Icons.Outlined.Info) },
+                    onClick = {},
+                )
+            }
+        }
     }
 
     when (choice) {
