@@ -84,7 +84,7 @@ import com.lopleec.kotj.model.Category
 import com.lopleec.kotj.model.NoteSummary
 import com.lopleec.kotj.data.NoteSort
 import kotlinx.coroutines.launch
-import org.uwuaosp.compose.settingslib.SettingsToolbarActionButton
+import org.uwuaosp.compose.widget.scaffold.SettingsToolbarActionButton
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
