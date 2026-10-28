@@ -36,12 +36,12 @@ import com.lopleec.kotj.R
 import com.lopleec.kotj.data.AppSettings
 import com.lopleec.kotj.data.ThemeMode
 import com.lopleec.kotj.data.NoteSort
-import org.uwuaosp.compose.settingslib.PreferenceRow
-import org.uwuaosp.compose.settingslib.SettingsHomepageIcon
-import org.uwuaosp.compose.settingslib.SettingsScaffold
-import org.uwuaosp.compose.settingslib.SettingsSection
-import org.uwuaosp.compose.settingslib.SettingsSectionSpacer
-import org.uwuaosp.compose.settingslib.SwitchPreferenceRow
+import org.uwuaosp.compose.widget.preference.PreferenceRow
+import org.uwuaosp.compose.widget.preference.SettingsSection
+import org.uwuaosp.compose.widget.preference.SettingsSectionSpacer
+import org.uwuaosp.compose.widget.preference.SwitchPreferenceRow
+import org.uwuaosp.compose.widget.scaffold.SettingsScaffold
+import org.uwuaosp.compose.widget.ui.SettingsHomepageIcon
 
 private enum class SettingsChoice { THEME, TRASH, SORT }
 

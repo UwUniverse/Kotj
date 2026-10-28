@@ -2,7 +2,6 @@ package com.lopleec.kotj.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -15,6 +14,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.lopleec.kotj.data.ThemeMode
 import com.lopleec.kotj.ui.findActivity
+import org.uwuaosp.compose.framework.theme.SettingsTheme
 
 private val LightColors = lightColorScheme(
     primary = Color(0xFF6750A4),
@@ -67,5 +67,10 @@ fun KotjTheme(
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
     }
-    MaterialTheme(colorScheme = colors, content = content)
+    SettingsTheme(
+        darkTheme = darkTheme,
+        dynamicColor = useDynamicColor,
+        colorScheme = colors,
+        content = content,
+    )
 }
