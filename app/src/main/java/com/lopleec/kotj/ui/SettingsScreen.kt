@@ -5,23 +5,23 @@ package com.lopleec.kotj.ui
 import android.app.KeyguardManager
 import android.content.Context
 import android.os.Build
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.outlined.WarningAmber
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,8 +34,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.lopleec.kotj.R
 import com.lopleec.kotj.data.AppSettings
-import com.lopleec.kotj.data.ThemeMode
 import com.lopleec.kotj.data.NoteSort
+import com.lopleec.kotj.data.ThemeMode
+import org.uwuaosp.compose.widget.editor.SettingsChoiceList
 import org.uwuaosp.compose.widget.preference.PreferenceRow
 import org.uwuaosp.compose.widget.preference.SettingsSection
 import org.uwuaosp.compose.widget.preference.SettingsSectionSpacer
@@ -43,20 +44,22 @@ import org.uwuaosp.compose.widget.preference.SwitchPreferenceRow
 import org.uwuaosp.compose.widget.scaffold.SettingsScaffold
 import org.uwuaosp.compose.widget.ui.SettingsHomepageIcon
 
-private enum class SettingsChoice { THEME, TRASH, SORT }
+private enum class SettingsChoice {
+    THEME,
+    TRASH,
+    SORT,
+}
 
 @Composable
-fun SettingsScreen(
-    settings: AppSettings,
-    onUpdate: (AppSettings) -> Unit,
-    onBack: () -> Unit,
-) {
+fun SettingsScreen(settings: AppSettings, onUpdate: (AppSettings) -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
-    val versionName = remember(context) {
-        context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
-    }
-    val systemUnlockAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-        (context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager).isDeviceSecure
+    val versionName =
+        remember(context) {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
+        }
+    val systemUnlockAvailable =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+            (context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager).isDeviceSecure
     var choice by remember { mutableStateOf<SettingsChoice?>(null) }
 
     SettingsScaffold(
@@ -89,11 +92,12 @@ fun SettingsScreen(
             item {
                 SwitchPreferenceRow(
                     title = stringResource(R.string.settings_system_unlock),
-                    summary = if (systemUnlockAvailable) {
-                        stringResource(R.string.settings_system_unlock_summary)
-                    } else {
-                        stringResource(R.string.settings_system_unlock_unavailable)
-                    },
+                    summary =
+                        if (systemUnlockAvailable) {
+                            stringResource(R.string.settings_system_unlock_summary)
+                        } else {
+                            stringResource(R.string.settings_system_unlock_unavailable)
+                        },
                     checked = settings.useSystemUnlock && systemUnlockAvailable,
                     onCheckedChange = { onUpdate(settings.copy(useSystemUnlock = it)) },
                     enabled = systemUnlockAvailable,
@@ -154,36 +158,49 @@ fun SettingsScreen(
     }
 
     when (choice) {
-        SettingsChoice.THEME -> ChoiceSheet(
-            title = stringResource(R.string.settings_theme),
-            options = ThemeMode.entries.map { it to it.label() },
-            selected = settings.themeMode,
-            onDismiss = { choice = null },
-            onSelect = { onUpdate(settings.copy(themeMode = it)); choice = null },
-        )
-        SettingsChoice.TRASH -> ChoiceSheet(
-            title = stringResource(R.string.settings_trash_retention),
-            options = listOf(7, 30, 90, 0).map { it to retentionLabel(it) },
-            selected = settings.trashRetentionDays,
-            onDismiss = { choice = null },
-            onSelect = { onUpdate(settings.copy(trashRetentionDays = it)); choice = null },
-        )
-        SettingsChoice.SORT -> ChoiceSheet(
-            title = stringResource(R.string.settings_note_sorting),
-            options = NoteSort.entries.map { it to it.label() },
-            selected = settings.noteSort,
-            onDismiss = { choice = null },
-            onSelect = { onUpdate(settings.copy(noteSort = it)); choice = null },
-        )
+        SettingsChoice.THEME ->
+            ChoiceSheet(
+                title = stringResource(R.string.settings_theme),
+                options = ThemeMode.entries.map { it to it.label() },
+                selected = settings.themeMode,
+                onDismiss = { choice = null },
+                onSelect = {
+                    onUpdate(settings.copy(themeMode = it))
+                    choice = null
+                },
+            )
+        SettingsChoice.TRASH ->
+            ChoiceSheet(
+                title = stringResource(R.string.settings_trash_retention),
+                options = listOf(7, 30, 90, 0).map { it to retentionLabel(it) },
+                selected = settings.trashRetentionDays,
+                onDismiss = { choice = null },
+                onSelect = {
+                    onUpdate(settings.copy(trashRetentionDays = it))
+                    choice = null
+                },
+            )
+        SettingsChoice.SORT ->
+            ChoiceSheet(
+                title = stringResource(R.string.settings_note_sorting),
+                options = NoteSort.entries.map { it to it.label() },
+                selected = settings.noteSort,
+                onDismiss = { choice = null },
+                onSelect = {
+                    onUpdate(settings.copy(noteSort = it))
+                    choice = null
+                },
+            )
         null -> Unit
     }
 }
 
 @Composable
-private fun NoteSort.label(): String = when (this) {
-    NoteSort.UPDATED -> stringResource(R.string.settings_sort_by_date)
-    NoteSort.TITLE -> stringResource(R.string.settings_sort_alphabetically)
-}
+private fun NoteSort.label(): String =
+    when (this) {
+        NoteSort.UPDATED -> stringResource(R.string.settings_sort_by_date)
+        NoteSort.TITLE -> stringResource(R.string.settings_sort_alphabetically)
+    }
 
 @Composable
 private fun <T> ChoiceSheet(
@@ -197,12 +214,16 @@ private fun <T> ChoiceSheet(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(24.dp, 12.dp))
-        options.forEach { (value, label) ->
-            ListItem(
-                headlineContent = { Text(label) },
-                leadingContent = { RadioButton(selected = value == selected, onClick = null) },
-                modifier = Modifier.clickable { onSelect(value) },
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(24.dp, 12.dp),
+        )
+        Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
+            SettingsChoiceList(
+                options = options.map { it.second },
+                selectedIndex = options.indexOfFirst { it.first == selected },
+                onSelect = { onSelect(options[it].first) },
             )
         }
         Spacer(Modifier.navigationBarsPadding())
@@ -210,16 +231,18 @@ private fun <T> ChoiceSheet(
 }
 
 @Composable
-private fun ThemeMode.label(): String = when (this) {
-    ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_system)
-    ThemeMode.LIGHT -> stringResource(R.string.settings_theme_light)
-    ThemeMode.DARK -> stringResource(R.string.settings_theme_dark)
-}
+private fun ThemeMode.label(): String =
+    when (this) {
+        ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_system)
+        ThemeMode.LIGHT -> stringResource(R.string.settings_theme_light)
+        ThemeMode.DARK -> stringResource(R.string.settings_theme_dark)
+    }
 
 @Composable
-private fun retentionLabel(days: Int): String = when (days) {
-    7 -> stringResource(R.string.settings_retention_7_days)
-    30 -> stringResource(R.string.settings_retention_30_days)
-    90 -> stringResource(R.string.settings_retention_90_days)
-    else -> stringResource(R.string.settings_retention_forever)
-}
+private fun retentionLabel(days: Int): String =
+    when (days) {
+        7 -> stringResource(R.string.settings_retention_7_days)
+        30 -> stringResource(R.string.settings_retention_30_days)
+        90 -> stringResource(R.string.settings_retention_90_days)
+        else -> stringResource(R.string.settings_retention_forever)
+    }

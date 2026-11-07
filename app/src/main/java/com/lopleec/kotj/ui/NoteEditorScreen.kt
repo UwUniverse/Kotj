@@ -1,4 +1,7 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@file:OptIn(
+    ExperimentalMaterial3ExpressiveApi::class,
+    androidx.compose.material3.ExperimentalMaterial3Api::class,
+)
 
 package com.lopleec.kotj.ui
 
@@ -11,8 +14,8 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image as ComposeImage
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,19 +33,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
+import androidx.compose.material.icons.automirrored.outlined.Redo
+import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FormatBold
 import androidx.compose.material.icons.outlined.FormatColorText
@@ -52,42 +58,38 @@ import androidx.compose.material.icons.outlined.FormatStrikethrough
 import androidx.compose.material.icons.outlined.FormatUnderlined
 import androidx.compose.material.icons.outlined.HorizontalRule
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.automirrored.outlined.Redo
-import androidx.compose.material.icons.automirrored.outlined.Undo
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -95,19 +97,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -118,13 +120,12 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lopleec.kotj.R
@@ -141,6 +142,10 @@ import com.lopleec.kotj.model.TextKind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.uwuaosp.compose.widget.editor.SettingsChoiceList
+import org.uwuaosp.compose.widget.expressive.SettingsFloatingToolbar
+import org.uwuaosp.compose.widget.scaffold.SettingsScreenScaffold
+import org.uwuaosp.compose.widget.ui.SettingsContent
 
 private const val TITLE_BLOCK_ID = "__note_title__"
 
@@ -178,8 +183,10 @@ fun NoteEditorScreen(
     val defaultFileName = stringResource(R.string.editor_default_file_name)
     val selectTextToFormat = stringResource(R.string.editor_select_text_to_format)
     var activeBlockId by remember(session.noteId) { mutableStateOf<String?>(null) }
-    var activeSelections by remember(session.noteId) { mutableStateOf<Map<String, TextRange>>(emptyMap()) }
-    var pendingFocusBlockId by remember(session.noteId) { mutableStateOf(if (session.autoFocus) TITLE_BLOCK_ID else null) }
+    var activeSelections by
+        remember(session.noteId) { mutableStateOf<Map<String, TextRange>>(emptyMap()) }
+    var pendingFocusBlockId by
+        remember(session.noteId) { mutableStateOf(if (session.autoFocus) TITLE_BLOCK_ID else null) }
     var moreSheetVisible by remember { mutableStateOf(false) }
     var categorySheetVisible by remember { mutableStateOf(false) }
     var encryptionDialog by remember { mutableStateOf(false) }
@@ -187,13 +194,19 @@ fun NoteEditorScreen(
     var deletePasswordDialog by remember { mutableStateOf(false) }
     var exportFormat by remember { mutableStateOf<ExportFormat?>(null) }
     var exportSheetVisible by remember { mutableStateOf(false) }
-    var findVisible by remember(session.noteId) { mutableStateOf(session.initialSearchQuery.isNotBlank()) }
+    var findVisible by
+        remember(session.noteId) { mutableStateOf(session.initialSearchQuery.isNotBlank()) }
     var findQuery by remember(session.noteId) { mutableStateOf(session.initialSearchQuery) }
     var activeFindIndex by remember(session.noteId) { mutableIntStateOf(0) }
     var imageInsertionPending by remember { mutableStateOf<Set<String>?>(null) }
-    var titleFieldVisible by remember(session.noteId) {
-        mutableStateOf(session.autoFocus || session.document.title.isNotBlank() || session.document.blocks.isEmpty())
-    }
+    var titleFieldVisible by
+        remember(session.noteId) {
+            mutableStateOf(
+                session.autoFocus ||
+                    session.document.title.isNotBlank() ||
+                    session.document.blocks.isEmpty()
+            )
+        }
     val editorListState = rememberLazyListState()
     val keyboard = LocalSoftwareKeyboardController.current
 
@@ -202,7 +215,10 @@ fun NoteEditorScreen(
             onUpdate { document ->
                 document.copy(
                     subtitle = "",
-                    blocks = listOf(NoteBlock(text = document.subtitle, textKind = TextKind.SUBHEADING)) + document.blocks,
+                    blocks =
+                        listOf(
+                            NoteBlock(text = document.subtitle, textKind = TextKind.SUBHEADING)
+                        ) + document.blocks,
                 )
             }
         }
@@ -211,9 +227,10 @@ fun NoteEditorScreen(
 
     LaunchedEffect(session.document.blocks) {
         imageInsertionPending?.let { existingImages ->
-            val insertedIndex = session.document.blocks.indexOfFirst {
-                it.type == BlockType.IMAGE && it.id !in existingImages
-            }
+            val insertedIndex =
+                session.document.blocks.indexOfFirst {
+                    it.type == BlockType.IMAGE && it.id !in existingImages
+                }
             val target = session.document.blocks.getOrNull(insertedIndex + 1)
             if (insertedIndex >= 0 && target?.type == BlockType.TEXT) {
                 pendingFocusBlockId = target.id
@@ -223,55 +240,65 @@ fun NoteEditorScreen(
         }
     }
 
-    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            imageInsertionPending = session.document.blocks.filter { it.type == BlockType.IMAGE }.mapTo(mutableSetOf()) { it.id }
-            onAddImage(uri, activeBlockId)
-        }
-    }
-
-    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val format = exportFormat
-        val uri = result.data?.data
-        if (result.resultCode == Activity.RESULT_OK && format != null && uri != null) {
-            val snapshot = session.document
-            scope.launch {
-                runCatching {
-                    withContext(Dispatchers.IO) {
-                        context.contentResolver.openOutputStream(uri, "w")?.use { output ->
-                            when (format) {
-                                ExportFormat.DOCX -> NoteExporter.writeDocx(
-                                    document = snapshot,
-                                    output = output,
-                                    resolver = context.contentResolver,
-                                    imageReader = { block ->
-                                        onReadAttachment(block, session.password)
-                                    },
-                                )
-                                ExportFormat.MARKDOWN -> output.write(
-                                    NoteExporter.markdown(snapshot) { block ->
-                                        onReadAttachment(block, session.password)
-                                    }.toByteArray(),
-                                )
-                                ExportFormat.TEXT -> output.write(NoteExporter.text(snapshot).toByteArray())
-                            }
-                        } ?: error(couldNotCreateFile)
-                    }
-                }.onSuccess {
-                    snackbar.showSnackbar(
-                        when (format) {
-                            ExportFormat.DOCX -> exportDocxSuccess
-                            ExportFormat.MARKDOWN -> exportMarkdownSuccess
-                            ExportFormat.TEXT -> exportTextSuccess
-                        },
-                    )
-                }.onFailure {
-                    snackbar.showSnackbar(it.message ?: exportFailed)
-                }
+    val imageLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                imageInsertionPending =
+                    session.document.blocks
+                        .filter { it.type == BlockType.IMAGE }
+                        .mapTo(mutableSetOf()) { it.id }
+                onAddImage(uri, activeBlockId)
             }
         }
-        exportFormat = null
-    }
+
+    val exportLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result
+            ->
+            val format = exportFormat
+            val uri = result.data?.data
+            if (result.resultCode == Activity.RESULT_OK && format != null && uri != null) {
+                val snapshot = session.document
+                scope.launch {
+                    runCatching {
+                            withContext(Dispatchers.IO) {
+                                context.contentResolver.openOutputStream(uri, "w")?.use { output ->
+                                    when (format) {
+                                        ExportFormat.DOCX ->
+                                            NoteExporter.writeDocx(
+                                                document = snapshot,
+                                                output = output,
+                                                resolver = context.contentResolver,
+                                                imageReader = { block ->
+                                                    onReadAttachment(block, session.password)
+                                                },
+                                            )
+                                        ExportFormat.MARKDOWN ->
+                                            output.write(
+                                                NoteExporter.markdown(snapshot) { block ->
+                                                        onReadAttachment(block, session.password)
+                                                    }
+                                                    .toByteArray()
+                                            )
+                                        ExportFormat.TEXT ->
+                                            output.write(NoteExporter.text(snapshot).toByteArray())
+                                    }
+                                } ?: error(couldNotCreateFile)
+                            }
+                        }
+                        .onSuccess {
+                            snackbar.showSnackbar(
+                                when (format) {
+                                    ExportFormat.DOCX -> exportDocxSuccess
+                                    ExportFormat.MARKDOWN -> exportMarkdownSuccess
+                                    ExportFormat.TEXT -> exportTextSuccess
+                                }
+                            )
+                        }
+                        .onFailure { snackbar.showSnackbar(it.message ?: exportFailed) }
+                }
+            }
+            exportFormat = null
+        }
 
     fun launchExport(format: ExportFormat) {
         exportFormat = format
@@ -333,15 +360,19 @@ fun NoteEditorScreen(
         pendingFocusBlockId = trailing.id
     }
 
-    val findMatches = remember(session.document, findQuery) { findMatches(session.document, findQuery) }
-    val activeFindMatch = findMatches.getOrNull(activeFindIndex.coerceIn(0, (findMatches.size - 1).coerceAtLeast(0)))
+    val findMatches =
+        remember(session.document, findQuery) { findMatches(session.document, findQuery) }
+    val activeFindMatch =
+        findMatches.getOrNull(activeFindIndex.coerceIn(0, (findMatches.size - 1).coerceAtLeast(0)))
     LaunchedEffect(findMatches.size, findQuery) { activeFindIndex = 0 }
     LaunchedEffect(activeFindMatch) {
         activeFindMatch?.let { match ->
-            val itemIndex = if (match.blockId == TITLE_BLOCK_ID) 0
-            else session.document.blocks.indexOfFirst { it.id == match.blockId }.let {
-                if (it < 0) 0 else it + if (titleFieldVisible) 1 else 0
-            }
+            val itemIndex =
+                if (match.blockId == TITLE_BLOCK_ID) 0
+                else
+                    session.document.blocks
+                        .indexOfFirst { it.id == match.blockId }
+                        .let { if (it < 0) 0 else it + if (titleFieldVisible) 1 else 0 }
             editorListState.animateScrollToItem(itemIndex)
         }
     }
@@ -391,46 +422,40 @@ fun NoteEditorScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbar) },
-        topBar = {
-            Column {
-                TopAppBar(
-                    title = {
-                        Text(
-                            session.document.title.ifBlank { stringResource(R.string.editor_untitled) },
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.editor_back))
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = onUndo, enabled = canUndo) {
-                            Icon(Icons.AutoMirrored.Outlined.Undo, stringResource(R.string.editor_undo))
-                        }
-                        IconButton(onClick = onRedo, enabled = canRedo) {
-                            Icon(Icons.AutoMirrored.Outlined.Redo, stringResource(R.string.editor_redo))
-                        }
-                        IconButton(onClick = onTogglePinned) {
-                            Icon(
-                                imageVector = if (session.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                                contentDescription = stringResource(if (session.pinned) R.string.editor_unpin else R.string.editor_pin),
-                            )
-                        }
-                        IconButton(onClick = { moreSheetVisible = true }) {
-                            Icon(Icons.Outlined.MoreVert, stringResource(R.string.editor_more))
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+    SettingsScreenScaffold(
+        title = session.document.title.ifBlank { stringResource(R.string.editor_untitled) },
+        showBackButton = true,
+        onNavigateUp = onBack,
+        actions = {
+            IconButton(onClick = onUndo, enabled = canUndo, shapes = IconButtonDefaults.shapes()) {
+                Icon(Icons.AutoMirrored.Outlined.Undo, stringResource(R.string.editor_undo))
+            }
+            IconButton(onClick = onRedo, enabled = canRedo, shapes = IconButtonDefaults.shapes()) {
+                Icon(Icons.AutoMirrored.Outlined.Redo, stringResource(R.string.editor_redo))
+            }
+            IconButton(onClick = onTogglePinned, shapes = IconButtonDefaults.shapes()) {
+                Icon(
+                    imageVector =
+                        if (session.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                    contentDescription =
+                        stringResource(
+                            if (session.pinned) R.string.editor_unpin else R.string.editor_pin
+                        ),
                 )
+            }
+            IconButton(
+                onClick = { moreSheetVisible = true },
+                shapes = IconButtonDefaults.shapes(),
+            ) {
+                Icon(Icons.Outlined.MoreVert, stringResource(R.string.editor_more))
+            }
+        },
+        header = {
+            SettingsContent {
                 if (findVisible) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+                        modifier =
+                            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         OutlinedTextField(
@@ -439,40 +464,80 @@ fun NoteEditorScreen(
                             modifier = Modifier.weight(1f),
                             placeholder = { Text(stringResource(R.string.editor_find_in_note)) },
                             leadingIcon = { Icon(Icons.Outlined.Search, null) },
-                            supportingText = if (findQuery.isNotBlank()) ({
-                                Text(
-                                    if (findMatches.isEmpty()) stringResource(R.string.editor_no_results)
-                                    else stringResource(R.string.editor_find_result_position, activeFindIndex + 1, findMatches.size),
-                                )
-                            }) else null,
+                            supportingText =
+                                if (findQuery.isNotBlank())
+                                    ({
+                                        Text(
+                                            if (findMatches.isEmpty())
+                                                stringResource(R.string.editor_no_results)
+                                            else
+                                                stringResource(
+                                                    R.string.editor_find_result_position,
+                                                    activeFindIndex + 1,
+                                                    findMatches.size,
+                                                )
+                                        )
+                                    })
+                                else null,
                             singleLine = true,
                         )
                         IconButton(
-                            onClick = { if (findMatches.isNotEmpty()) activeFindIndex = (activeFindIndex - 1 + findMatches.size) % findMatches.size },
+                            onClick = {
+                                if (findMatches.isNotEmpty())
+                                    activeFindIndex =
+                                        (activeFindIndex - 1 + findMatches.size) % findMatches.size
+                            },
                             enabled = findMatches.isNotEmpty(),
-                        ) { Icon(Icons.Outlined.KeyboardArrowUp, stringResource(R.string.editor_previous)) }
+                            shapes = IconButtonDefaults.shapes(),
+                        ) {
+                            Icon(
+                                Icons.Outlined.KeyboardArrowUp,
+                                stringResource(R.string.editor_previous),
+                            )
+                        }
                         IconButton(
-                            onClick = { if (findMatches.isNotEmpty()) activeFindIndex = (activeFindIndex + 1) % findMatches.size },
+                            onClick = {
+                                if (findMatches.isNotEmpty())
+                                    activeFindIndex = (activeFindIndex + 1) % findMatches.size
+                            },
                             enabled = findMatches.isNotEmpty(),
-                        ) { Icon(Icons.Outlined.KeyboardArrowDown, stringResource(R.string.editor_next)) }
-                        IconButton(onClick = { findVisible = false; findQuery = "" }) {
+                            shapes = IconButtonDefaults.shapes(),
+                        ) {
+                            Icon(
+                                Icons.Outlined.KeyboardArrowDown,
+                                stringResource(R.string.editor_next),
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                findVisible = false
+                                findQuery = ""
+                            },
+                            shapes = IconButtonDefaults.shapes(),
+                        ) {
                             Icon(Icons.Outlined.Close, stringResource(R.string.editor_close_find))
                         }
                     }
                 }
             }
         },
+        snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
             EditorToolbar(
-                activeKind = if (activeBlockId == TITLE_BLOCK_ID) TextKind.TITLE
-                else session.document.blocks.firstOrNull { it.id == activeBlockId }?.textKind,
+                activeKind =
+                    if (activeBlockId == TITLE_BLOCK_ID) TextKind.TITLE
+                    else session.document.blocks.firstOrNull { it.id == activeBlockId }?.textKind,
                 onTextKind = ::changeActiveTextKind,
                 onFormat = ::applyTextFormat,
                 onAddImage = {
-                    imageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    imageLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
                 },
                 onAddTable = {
-                    insertObject(NoteBlock(type = BlockType.TABLE, tableCells = List(2) { List(2) { "" } }))
+                    insertObject(
+                        NoteBlock(type = BlockType.TABLE, tableCells = List(2) { List(2) { "" } })
+                    )
                 },
                 onAddDivider = { insertObject(NoteBlock(type = BlockType.DIVIDER)) },
                 onAddNumberedList = {
@@ -481,106 +546,148 @@ fun NoteEditorScreen(
                 onAddBulletList = {
                     insertTextBlock(NoteBlock(text = "• ", textKind = TextKind.BODY))
                 },
-                onAddChecklist = {
-                    insertTextBlock(NoteBlock(textKind = TextKind.CHECKLIST))
-                },
+                onAddChecklist = { insertTextBlock(NoteBlock(textKind = TextKind.CHECKLIST)) },
             )
         },
     ) { padding ->
-        LazyColumn(
-            state = editorListState,
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(start = 20.dp, top = 12.dp, end = 12.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            if (titleFieldVisible) {
-                item(key = TITLE_BLOCK_ID) {
-                    EditorTitleField(
-                        title = session.document.title,
-                        requestFocus = pendingFocusBlockId == TITLE_BLOCK_ID,
-                        searchQuery = findQuery,
-                        activeMatch = activeFindMatch?.takeIf { it.blockId == TITLE_BLOCK_ID },
-                        onFocusConsumed = { pendingFocusBlockId = null },
-                        onFocused = { activeBlockId = TITLE_BLOCK_ID; activeSelections = emptyMap() },
-                        onTitleChange = { title -> onUpdate { it.copy(title = title) } },
-                        onEnter = { title, body ->
-                            var targetId: String? = null
-                            onUpdate { document ->
-                                val result = applyTitleEnter(document, title, body)
-                                targetId = result.second
-                                result.first
-                            }
-                            targetId?.let { id ->
-                                activeBlockId = id
-                                pendingFocusBlockId = id
-                            }
-                        },
-                    )
-                }
-            }
-            itemsIndexed(session.document.blocks, key = { _, block -> block.id }) { index, block ->
-                val previousObject = session.document.blocks.getOrNull(index - 1)?.takeIf { it.type != BlockType.TEXT }
-                when (block.type) {
-                    BlockType.TEXT -> if (block.textKind == TextKind.CHECKLIST) {
-                        InlineChecklistEditor(
-                            block = block,
-                            requestFocus = pendingFocusBlockId == block.id,
+        SettingsContent {
+            LazyColumn(
+                state = editorListState,
+                modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
+                contentPadding =
+                    PaddingValues(start = 20.dp, top = 12.dp, end = 12.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                if (titleFieldVisible) {
+                    item(key = TITLE_BLOCK_ID) {
+                        EditorTitleField(
+                            title = session.document.title,
+                            requestFocus = pendingFocusBlockId == TITLE_BLOCK_ID,
                             searchQuery = findQuery,
-                            activeMatch = activeFindMatch?.takeIf { it.blockId == block.id },
-                            onFocusRequestConsumed = { pendingFocusBlockId = null },
-                            onFocused = { selection ->
-                                activeBlockId = block.id
-                                activeSelections = mapOf(block.id to selection)
+                            activeMatch = activeFindMatch?.takeIf { it.blockId == TITLE_BLOCK_ID },
+                            onFocusConsumed = { pendingFocusBlockId = null },
+                            onFocused = {
+                                activeBlockId = TITLE_BLOCK_ID
+                                activeSelections = emptyMap()
                             },
-                            onChange = { changed -> updateBlock(block.id) { changed } },
-                            onExitEmpty = {
-                                updateBlock(block.id) { it.copy(text = "", textKind = TextKind.BODY, checked = false) }
-                                activeBlockId = block.id
-                                pendingFocusBlockId = block.id
+                            onTitleChange = { title -> onUpdate { it.copy(title = title) } },
+                            onEnter = { title, body ->
+                                var targetId: String? = null
+                                onUpdate { document ->
+                                    val result = applyTitleEnter(document, title, body)
+                                    targetId = result.second
+                                    result.first
+                                }
+                                targetId?.let { id ->
+                                    activeBlockId = id
+                                    pendingFocusBlockId = id
+                                }
                             },
-                            onRemoveMarker = { text ->
-                                updateBlock(block.id) { it.copy(text = text, textKind = TextKind.BODY, checked = false) }
-                                activeBlockId = block.id
-                                pendingFocusBlockId = block.id
-                            },
-                            onContinue = { textBefore, textAfter ->
-                                val next = NoteBlock(type = BlockType.TEXT, text = textAfter, textKind = TextKind.CHECKLIST)
-                                onUpdate { document -> document.copy(blocks = document.blocks.flatMap {
-                                    if (it.id == block.id) listOf(it.copy(text = textBefore), next) else listOf(it)
-                                }) }
-                                activeBlockId = next.id
-                                pendingFocusBlockId = next.id
-                            },
-                        )
-                    } else {
-                        InlineTextBlockEditor(
-                            block = block,
-                            requestFocus = pendingFocusBlockId == block.id,
-                            searchQuery = findQuery,
-                            activeMatch = activeFindMatch?.takeIf { it.blockId == block.id },
-                            hasPreviousObject = previousObject != null,
-                            onFocusRequestConsumed = { pendingFocusBlockId = null },
-                            onFocused = { selection ->
-                                activeBlockId = block.id
-                                activeSelections = mapOf(block.id to selection)
-                            },
-                            onChange = { changed -> updateBlock(block.id) { changed } },
-                            onDeletePreviousObject = { previousObject?.let { removeBlock(it.id) } },
                         )
                     }
-                    BlockType.IMAGE -> ImageBlockEditor(
-                        block = block,
-                        password = session.password,
-                        onReadAttachment = onReadAttachment,
-                    )
-                    BlockType.TABLE -> TableBlockEditor(
-                        block = block,
-                        onChange = { changed -> updateBlock(block.id) { changed } },
-                        searchQuery = findQuery,
-                        activeMatch = activeFindMatch?.takeIf { it.blockId == block.id },
-                        onFocused = { activeBlockId = block.id; activeSelections = emptyMap() },
-                    )
-                    BlockType.DIVIDER -> DividerBlock()
+                }
+                itemsIndexed(session.document.blocks, key = { _, block -> block.id }) { index, block
+                    ->
+                    val previousObject =
+                        session.document.blocks.getOrNull(index - 1)?.takeIf {
+                            it.type != BlockType.TEXT
+                        }
+                    when (block.type) {
+                        BlockType.TEXT ->
+                            if (block.textKind == TextKind.CHECKLIST) {
+                                InlineChecklistEditor(
+                                    block = block,
+                                    requestFocus = pendingFocusBlockId == block.id,
+                                    searchQuery = findQuery,
+                                    activeMatch =
+                                        activeFindMatch?.takeIf { it.blockId == block.id },
+                                    onFocusRequestConsumed = { pendingFocusBlockId = null },
+                                    onFocused = { selection ->
+                                        activeBlockId = block.id
+                                        activeSelections = mapOf(block.id to selection)
+                                    },
+                                    onChange = { changed -> updateBlock(block.id) { changed } },
+                                    onExitEmpty = {
+                                        updateBlock(block.id) {
+                                            it.copy(
+                                                text = "",
+                                                textKind = TextKind.BODY,
+                                                checked = false,
+                                            )
+                                        }
+                                        activeBlockId = block.id
+                                        pendingFocusBlockId = block.id
+                                    },
+                                    onRemoveMarker = { text ->
+                                        updateBlock(block.id) {
+                                            it.copy(
+                                                text = text,
+                                                textKind = TextKind.BODY,
+                                                checked = false,
+                                            )
+                                        }
+                                        activeBlockId = block.id
+                                        pendingFocusBlockId = block.id
+                                    },
+                                    onContinue = { textBefore, textAfter ->
+                                        val next =
+                                            NoteBlock(
+                                                type = BlockType.TEXT,
+                                                text = textAfter,
+                                                textKind = TextKind.CHECKLIST,
+                                            )
+                                        onUpdate { document ->
+                                            document.copy(
+                                                blocks =
+                                                    document.blocks.flatMap {
+                                                        if (it.id == block.id)
+                                                            listOf(it.copy(text = textBefore), next)
+                                                        else listOf(it)
+                                                    }
+                                            )
+                                        }
+                                        activeBlockId = next.id
+                                        pendingFocusBlockId = next.id
+                                    },
+                                )
+                            } else {
+                                InlineTextBlockEditor(
+                                    block = block,
+                                    requestFocus = pendingFocusBlockId == block.id,
+                                    searchQuery = findQuery,
+                                    activeMatch =
+                                        activeFindMatch?.takeIf { it.blockId == block.id },
+                                    hasPreviousObject = previousObject != null,
+                                    onFocusRequestConsumed = { pendingFocusBlockId = null },
+                                    onFocused = { selection ->
+                                        activeBlockId = block.id
+                                        activeSelections = mapOf(block.id to selection)
+                                    },
+                                    onChange = { changed -> updateBlock(block.id) { changed } },
+                                    onDeletePreviousObject = {
+                                        previousObject?.let { removeBlock(it.id) }
+                                    },
+                                )
+                            }
+                        BlockType.IMAGE ->
+                            ImageBlockEditor(
+                                block = block,
+                                password = session.password,
+                                onReadAttachment = onReadAttachment,
+                            )
+                        BlockType.TABLE ->
+                            TableBlockEditor(
+                                block = block,
+                                onChange = { changed -> updateBlock(block.id) { changed } },
+                                searchQuery = findQuery,
+                                activeMatch = activeFindMatch?.takeIf { it.blockId == block.id },
+                                onFocused = {
+                                    activeBlockId = block.id
+                                    activeSelections = emptyMap()
+                                },
+                            )
+                        BlockType.DIVIDER -> DividerBlock()
+                    }
                 }
             }
         }
@@ -596,20 +703,15 @@ fun NoteEditorScreen(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.editor_no_group)) },
-                leadingContent = { RadioButton(selected = session.categoryId == null, onClick = null) },
-                modifier = Modifier.clickable {
-                    onCategoryChange(null)
-                    categorySheetVisible = false
-                },
-            )
-            categories.forEach { category ->
-                ListItem(
-                    headlineContent = { Text(category.localizedName()) },
-                    leadingContent = { RadioButton(selected = session.categoryId == category.id, onClick = null) },
-                    modifier = Modifier.clickable {
-                        onCategoryChange(category.id)
+            val choices = listOf<String?>(null) + categories.map { it.id }
+            Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
+                SettingsChoiceList(
+                    options =
+                        listOf(stringResource(R.string.editor_no_group)) +
+                            categories.map { it.localizedName() },
+                    selectedIndex = choices.indexOf(session.categoryId),
+                    onSelect = { index ->
+                        onCategoryChange(choices[index])
                         categorySheetVisible = false
                     },
                 )
@@ -630,11 +732,17 @@ fun NoteEditorScreen(
                     icon = Icons.Outlined.Search,
                     label = stringResource(R.string.editor_find),
                     modifier = Modifier.weight(1f),
-                    onClick = { moreSheetVisible = false; findVisible = true },
+                    onClick = {
+                        moreSheetVisible = false
+                        findVisible = true
+                    },
                 )
                 NoteAction(
                     icon = if (session.encrypted) Icons.Outlined.LockOpen else Icons.Outlined.Lock,
-                    label = stringResource(if (session.encrypted) R.string.editor_unlock else R.string.editor_lock),
+                    label =
+                        stringResource(
+                            if (session.encrypted) R.string.editor_unlock else R.string.editor_lock
+                        ),
                     modifier = Modifier.weight(1f),
                     outlined = !session.encrypted,
                     onClick = {
@@ -650,13 +758,19 @@ fun NoteEditorScreen(
                     icon = Icons.AutoMirrored.Outlined.InsertDriveFile,
                     label = stringResource(R.string.editor_move),
                     modifier = Modifier.weight(1f),
-                    onClick = { moreSheetVisible = false; categorySheetVisible = true },
+                    onClick = {
+                        moreSheetVisible = false
+                        categorySheetVisible = true
+                    },
                 )
                 NoteAction(
                     icon = Icons.Outlined.SaveAlt,
                     label = stringResource(R.string.editor_export),
                     modifier = Modifier.weight(1f),
-                    onClick = { moreSheetVisible = false; exportSheetVisible = true },
+                    onClick = {
+                        moreSheetVisible = false
+                        exportSheetVisible = true
+                    },
                 )
                 NoteAction(
                     icon = Icons.Outlined.Delete,
@@ -688,17 +802,26 @@ fun NoteEditorScreen(
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
             listOf(
-                Triple(stringResource(R.string.editor_word_document), ".docx", ExportFormat.DOCX),
-                Triple(stringResource(R.string.editor_markdown), ".md", ExportFormat.MARKDOWN),
-                Triple(stringResource(R.string.editor_plain_text), ".txt", ExportFormat.TEXT),
-            ).forEach { (label, extension, format) ->
-                ListItem(
-                    headlineContent = { Text(label) },
-                    supportingContent = { Text(extension) },
-                    leadingContent = { Icon(Icons.Outlined.SaveAlt, null) },
-                    modifier = Modifier.clickable { exportSheetVisible = false; launchExport(format) },
+                    Triple(
+                        stringResource(R.string.editor_word_document),
+                        ".docx",
+                        ExportFormat.DOCX,
+                    ),
+                    Triple(stringResource(R.string.editor_markdown), ".md", ExportFormat.MARKDOWN),
+                    Triple(stringResource(R.string.editor_plain_text), ".txt", ExportFormat.TEXT),
                 )
-            }
+                .forEach { (label, extension, format) ->
+                    ListItem(
+                        headlineContent = { Text(label) },
+                        supportingContent = { Text(extension) },
+                        leadingContent = { Icon(Icons.Outlined.SaveAlt, null) },
+                        modifier =
+                            Modifier.clickable {
+                                exportSheetVisible = false
+                                launchExport(format)
+                            },
+                    )
+                }
             Spacer(Modifier.navigationBarsPadding().height(12.dp))
         }
     }
@@ -721,8 +844,22 @@ fun NoteEditorScreen(
             icon = { Icon(Icons.Outlined.Delete, null) },
             title = { Text(stringResource(R.string.editor_move_to_recently_deleted_question)) },
             text = { Text(stringResource(R.string.editor_recently_deleted_restore_description)) },
-            confirmButton = { TextButton(onClick = { deleteConfirm = false; onDelete(null) }) { Text(stringResource(R.string.editor_delete)) } },
-            dismissButton = { TextButton(onClick = { deleteConfirm = false }) { Text(stringResource(R.string.editor_cancel)) } },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        deleteConfirm = false
+                        onDelete(null)
+                    },
+                    shapes = ButtonDefaults.shapes(),
+                ) {
+                    Text(stringResource(R.string.editor_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteConfirm = false }, shapes = ButtonDefaults.shapes()) {
+                    Text(stringResource(R.string.editor_cancel))
+                }
+            },
         )
     }
     if (deletePasswordDialog) {
@@ -745,54 +882,47 @@ private fun NoteAction(
     destructive: Boolean = false,
     outlined: Boolean = false,
 ) {
-    val backgroundColor = if (destructive) {
-        MaterialTheme.colorScheme.errorContainer
-    } else {
-        MaterialTheme.colorScheme.secondaryContainer
-    }
-    val foregroundColor = if (destructive) {
-        MaterialTheme.colorScheme.onErrorContainer
-    } else {
-        MaterialTheme.colorScheme.onSecondaryContainer
-    }
     Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
+        modifier = modifier.padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .then(
-                    if (outlined) {
-                        Modifier.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-                    } else {
-                        Modifier.background(backgroundColor)
-                    },
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (outlined) MaterialTheme.colorScheme.onSurfaceVariant else foregroundColor,
-                modifier = Modifier.size(32.dp),
-            )
+        if (outlined) {
+            OutlinedIconButton(onClick = onClick, shapes = IconButtonDefaults.shapes()) {
+                Icon(icon, contentDescription = label)
+            }
+        } else {
+            FilledTonalIconButton(
+                onClick = onClick,
+                shapes = IconButtonDefaults.shapes(),
+                colors =
+                    if (destructive)
+                        IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    else IconButtonDefaults.filledTonalIconButtonColors(),
+            ) {
+                Icon(icon, contentDescription = label)
+            }
         }
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
+            color =
+                if (destructive) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.onSurface,
         )
     }
 }
 
-private enum class FormatKind { BOLD, ITALIC, UNDERLINE, STRIKE, COLOR }
+private enum class FormatKind {
+    BOLD,
+    ITALIC,
+    UNDERLINE,
+    STRIKE,
+    COLOR,
+}
 
 @Composable
 private fun EditorToolbar(
@@ -809,29 +939,66 @@ private fun EditorToolbar(
     var styleSheet by remember { mutableStateOf(false) }
     var insertSheet by remember { mutableStateOf(false) }
     var colorSheet by remember { mutableStateOf(false) }
-    val colors = listOf(
-        Color(0xFFB3261E), Color(0xFF00639B), Color(0xFF2E7D32),
-        Color(0xFF7B1FA2), Color(0xFFEF6C00),
-    )
-    Surface(
-        modifier = Modifier.fillMaxWidth().imePadding(),
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        tonalElevation = 3.dp,
-        shadowElevation = 3.dp,
+    val colors =
+        listOf(
+            Color(0xFFB3261E),
+            Color(0xFF00639B),
+            Color(0xFF2E7D32),
+            Color(0xFF7B1FA2),
+            Color(0xFFEF6C00),
+        )
+    SettingsFloatingToolbar(
+        expanded = true,
+        vibrant = false,
+        modifier =
+            Modifier.fillMaxWidth()
+                .imePadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 8.dp, vertical = 6.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 4.dp, vertical = 6.dp),
+            Modifier.horizontalScroll(rememberScrollState()),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            IconButton(onClick = { styleSheet = true }) { Icon(Icons.Outlined.FormatSize, stringResource(R.string.editor_text_style)) }
-            IconButton(onClick = { onFormat(FormatKind.BOLD, null) }) { Icon(Icons.Outlined.FormatBold, stringResource(R.string.editor_bold)) }
-            IconButton(onClick = { onFormat(FormatKind.ITALIC, null) }) { Icon(Icons.Outlined.FormatItalic, stringResource(R.string.editor_italic)) }
-            IconButton(onClick = { onFormat(FormatKind.UNDERLINE, null) }) { Icon(Icons.Outlined.FormatUnderlined, stringResource(R.string.editor_underline)) }
-            IconButton(onClick = { onFormat(FormatKind.STRIKE, null) }) { Icon(Icons.Outlined.FormatStrikethrough, stringResource(R.string.editor_strikethrough)) }
-            IconButton(onClick = { colorSheet = true }) { Icon(Icons.Outlined.FormatColorText, stringResource(R.string.editor_text_color)) }
-            FilledTonalIconButton(onClick = { insertSheet = true }) { Icon(Icons.Outlined.Add, stringResource(R.string.editor_insert)) }
+            IconButton(onClick = { styleSheet = true }, shapes = IconButtonDefaults.shapes()) {
+                Icon(Icons.Outlined.FormatSize, stringResource(R.string.editor_text_style))
+            }
+            IconButton(
+                onClick = { onFormat(FormatKind.BOLD, null) },
+                shapes = IconButtonDefaults.shapes(),
+            ) {
+                Icon(Icons.Outlined.FormatBold, stringResource(R.string.editor_bold))
+            }
+            IconButton(
+                onClick = { onFormat(FormatKind.ITALIC, null) },
+                shapes = IconButtonDefaults.shapes(),
+            ) {
+                Icon(Icons.Outlined.FormatItalic, stringResource(R.string.editor_italic))
+            }
+            IconButton(
+                onClick = { onFormat(FormatKind.UNDERLINE, null) },
+                shapes = IconButtonDefaults.shapes(),
+            ) {
+                Icon(Icons.Outlined.FormatUnderlined, stringResource(R.string.editor_underline))
+            }
+            IconButton(
+                onClick = { onFormat(FormatKind.STRIKE, null) },
+                shapes = IconButtonDefaults.shapes(),
+            ) {
+                Icon(
+                    Icons.Outlined.FormatStrikethrough,
+                    stringResource(R.string.editor_strikethrough),
+                )
+            }
+            IconButton(onClick = { colorSheet = true }, shapes = IconButtonDefaults.shapes()) {
+                Icon(Icons.Outlined.FormatColorText, stringResource(R.string.editor_text_color))
+            }
+            FilledTonalIconButton(
+                onClick = { insertSheet = true },
+                shapes = IconButtonDefaults.shapes(),
+            ) {
+                Icon(Icons.Outlined.Add, stringResource(R.string.editor_insert))
+            }
         }
     }
 
@@ -845,28 +1012,34 @@ private fun EditorToolbar(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
             )
-            TextKind.entries.forEach { kind ->
-                ListItem(
-                    headlineContent = { Text(kind.label()) },
-                    supportingContent = {
-                        Text(
+            Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
+                SettingsChoiceList(
+                    options = TextKind.entries.map { it.label() },
+                    summaries =
+                        TextKind.entries.map { kind ->
                             when (kind) {
-                                TextKind.TITLE -> stringResource(R.string.editor_text_kind_title_description)
-                                TextKind.BODY -> stringResource(R.string.editor_text_kind_body_description)
-                                TextKind.HEADING -> stringResource(R.string.editor_text_kind_heading_description)
-                                TextKind.SUBHEADING -> stringResource(R.string.editor_text_kind_subheading_description)
-                                TextKind.QUOTE -> stringResource(R.string.editor_text_kind_quote_description)
-                                TextKind.CHECKLIST -> stringResource(R.string.editor_text_kind_checklist_description)
-                            },
-                        )
-                    },
-                    leadingContent = { RadioButton(selected = kind == activeKind, onClick = null) },
-                    modifier = Modifier.clickable {
-                        onTextKind(kind)
+                                TextKind.TITLE ->
+                                    stringResource(R.string.editor_text_kind_title_description)
+                                TextKind.BODY ->
+                                    stringResource(R.string.editor_text_kind_body_description)
+                                TextKind.HEADING ->
+                                    stringResource(R.string.editor_text_kind_heading_description)
+                                TextKind.SUBHEADING ->
+                                    stringResource(R.string.editor_text_kind_subheading_description)
+                                TextKind.QUOTE ->
+                                    stringResource(R.string.editor_text_kind_quote_description)
+                                TextKind.CHECKLIST ->
+                                    stringResource(R.string.editor_text_kind_checklist_description)
+                            }
+                        },
+                    selectedIndex = TextKind.entries.indexOfFirst { it == activeKind },
+                    onSelect = { index ->
+                        onTextKind(TextKind.entries[index])
                         styleSheet = false
                     },
                 )
             }
+
             Spacer(Modifier.navigationBarsPadding().height(8.dp))
         }
     }
@@ -884,35 +1057,59 @@ private fun EditorToolbar(
                 headlineContent = { Text(stringResource(R.string.editor_numbered_list)) },
                 supportingContent = { Text("1.  2.  3.") },
                 leadingContent = { Icon(Icons.Outlined.FormatListNumbered, null) },
-                modifier = Modifier.clickable { insertSheet = false; onAddNumberedList() },
+                modifier =
+                    Modifier.clickable {
+                        insertSheet = false
+                        onAddNumberedList()
+                    },
             )
             ListItem(
                 headlineContent = { Text(stringResource(R.string.editor_bulleted_list)) },
                 supportingContent = { Text("•  •  •") },
                 leadingContent = { Icon(Icons.AutoMirrored.Outlined.FormatListBulleted, null) },
-                modifier = Modifier.clickable { insertSheet = false; onAddBulletList() },
+                modifier =
+                    Modifier.clickable {
+                        insertSheet = false
+                        onAddBulletList()
+                    },
             )
             ListItem(
                 headlineContent = { Text(stringResource(R.string.editor_checklist)) },
                 supportingContent = { Text(stringResource(R.string.editor_checklist_description)) },
                 leadingContent = { Icon(Icons.Outlined.CheckBox, null) },
-                modifier = Modifier.clickable { insertSheet = false; onAddChecklist() },
+                modifier =
+                    Modifier.clickable {
+                        insertSheet = false
+                        onAddChecklist()
+                    },
             )
             HorizontalDivider()
             ListItem(
                 headlineContent = { Text(stringResource(R.string.editor_photo)) },
                 leadingContent = { Icon(Icons.Outlined.Image, null) },
-                modifier = Modifier.clickable { insertSheet = false; onAddImage() },
+                modifier =
+                    Modifier.clickable {
+                        insertSheet = false
+                        onAddImage()
+                    },
             )
             ListItem(
                 headlineContent = { Text(stringResource(R.string.editor_table)) },
                 leadingContent = { Icon(Icons.Outlined.TableChart, null) },
-                modifier = Modifier.clickable { insertSheet = false; onAddTable() },
+                modifier =
+                    Modifier.clickable {
+                        insertSheet = false
+                        onAddTable()
+                    },
             )
             ListItem(
                 headlineContent = { Text(stringResource(R.string.editor_divider)) },
                 leadingContent = { Icon(Icons.Outlined.HorizontalRule, null) },
-                modifier = Modifier.clickable { insertSheet = false; onAddDivider() },
+                modifier =
+                    Modifier.clickable {
+                        insertSheet = false
+                        onAddDivider()
+                    },
             )
             Spacer(Modifier.navigationBarsPadding().height(8.dp))
         }
@@ -932,18 +1129,24 @@ private fun EditorToolbar(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(onClick = {
-                    onFormat(FormatKind.COLOR, null)
-                    colorSheet = false
-                }) {
+                TextButton(
+                    onClick = {
+                        onFormat(FormatKind.COLOR, null)
+                        colorSheet = false
+                    },
+                    shapes = ButtonDefaults.shapes(),
+                ) {
                     Text(stringResource(R.string.editor_default))
                 }
                 colors.forEach { color ->
                     Box(
-                        Modifier.size(40.dp).clip(RoundedCornerShape(50)).background(color).clickable {
-                            onFormat(FormatKind.COLOR, color)
-                            colorSheet = false
-                        },
+                        Modifier.size(40.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(color)
+                            .clickable {
+                                onFormat(FormatKind.COLOR, color)
+                                colorSheet = false
+                            }
                     )
                 }
             }
@@ -953,26 +1156,33 @@ private fun EditorToolbar(
 }
 
 @Composable
-private fun TextKind.label(): String = stringResource(
-    when (this) {
-        TextKind.TITLE -> R.string.editor_text_kind_title
-        TextKind.BODY -> R.string.editor_text_kind_body
-        TextKind.HEADING -> R.string.editor_text_kind_heading
-        TextKind.SUBHEADING -> R.string.editor_text_kind_subheading
-        TextKind.QUOTE -> R.string.editor_text_kind_quote
-        TextKind.CHECKLIST -> R.string.editor_text_kind_checklist
-    },
-)
+private fun TextKind.label(): String =
+    stringResource(
+        when (this) {
+            TextKind.TITLE -> R.string.editor_text_kind_title
+            TextKind.BODY -> R.string.editor_text_kind_body
+            TextKind.HEADING -> R.string.editor_text_kind_heading
+            TextKind.SUBHEADING -> R.string.editor_text_kind_subheading
+            TextKind.QUOTE -> R.string.editor_text_kind_quote
+            TextKind.CHECKLIST -> R.string.editor_text_kind_checklist
+        }
+    )
 
 @Composable
-private fun Category.localizedName(): String = when {
-    id == "personal" && name == "个人" -> stringResource(R.string.editor_category_personal)
-    id == "work" && name == "工作" -> stringResource(R.string.editor_category_work)
-    id == "ideas" && name == "灵感" -> stringResource(R.string.editor_category_ideas)
-    else -> name
-}
+private fun Category.localizedName(): String =
+    when {
+        id == "personal" && name == "个人" -> stringResource(R.string.editor_category_personal)
+        id == "work" && name == "工作" -> stringResource(R.string.editor_category_work)
+        id == "ideas" && name == "灵感" -> stringResource(R.string.editor_category_ideas)
+        else -> name
+    }
 
-private data class FindMatch(val blockId: String, val start: Int, val end: Int, val cellIndex: Int? = null)
+private data class FindMatch(
+    val blockId: String,
+    val start: Int,
+    val end: Int,
+    val cellIndex: Int? = null,
+)
 
 private const val OBJECT_DELETE_MARKER = "\u2060"
 
@@ -1307,38 +1517,45 @@ private fun TextFieldValue.withoutLeadingMarker(marker: String): TextFieldValue 
     )
 }
 
-private fun TextRange.shiftLeft(offset: Int): TextRange = TextRange(
-    (start - offset).coerceAtLeast(0),
-    (end - offset).coerceAtLeast(0),
-)
+private fun TextRange.shiftLeft(offset: Int): TextRange =
+    TextRange((start - offset).coerceAtLeast(0), (end - offset).coerceAtLeast(0))
 
-private val editorLineHeightStyle = LineHeightStyle(
-    alignment = LineHeightStyle.Alignment.Center,
-    trim = LineHeightStyle.Trim.None,
-)
+private val editorLineHeightStyle =
+    LineHeightStyle(alignment = LineHeightStyle.Alignment.Center, trim = LineHeightStyle.Trim.None)
 
-private fun TextKind.editorLineHeight() = when (this) {
-    TextKind.TITLE -> 36.sp
-    TextKind.HEADING -> 32.sp
-    TextKind.SUBHEADING -> 26.sp
-    TextKind.QUOTE, TextKind.CHECKLIST, TextKind.BODY -> 24.sp
-}
+private fun TextKind.editorLineHeight() =
+    when (this) {
+        TextKind.TITLE -> 36.sp
+        TextKind.HEADING -> 32.sp
+        TextKind.SUBHEADING -> 26.sp
+        TextKind.QUOTE,
+        TextKind.CHECKLIST,
+        TextKind.BODY -> 24.sp
+    }
 
-private fun TextKind.editorBaseTextStyle(): TextStyle = TextStyle(
-    fontSize = when (this) {
-        TextKind.TITLE -> 28.sp
-        TextKind.HEADING -> 24.sp
-        TextKind.SUBHEADING -> 19.sp
-        TextKind.QUOTE, TextKind.CHECKLIST, TextKind.BODY -> 17.sp
-    },
-    fontWeight = when (this) {
-        TextKind.TITLE, TextKind.HEADING -> FontWeight.Bold
-        TextKind.SUBHEADING -> FontWeight.SemiBold
-        TextKind.QUOTE, TextKind.CHECKLIST, TextKind.BODY -> FontWeight.Normal
-    },
-    fontStyle = if (this == TextKind.QUOTE) FontStyle.Italic else FontStyle.Normal,
-    lineHeight = editorLineHeight(),
-)
+private fun TextKind.editorBaseTextStyle(): TextStyle =
+    TextStyle(
+        fontSize =
+            when (this) {
+                TextKind.TITLE -> 28.sp
+                TextKind.HEADING -> 24.sp
+                TextKind.SUBHEADING -> 19.sp
+                TextKind.QUOTE,
+                TextKind.CHECKLIST,
+                TextKind.BODY -> 17.sp
+            },
+        fontWeight =
+            when (this) {
+                TextKind.TITLE,
+                TextKind.HEADING -> FontWeight.Bold
+                TextKind.SUBHEADING -> FontWeight.SemiBold
+                TextKind.QUOTE,
+                TextKind.CHECKLIST,
+                TextKind.BODY -> FontWeight.Normal
+            },
+        fontStyle = if (this == TextKind.QUOTE) FontStyle.Italic else FontStyle.Normal,
+        lineHeight = editorLineHeight(),
+    )
 
 private fun RichSpan.asComposeStyle(): SpanStyle {
     val decorations = buildList {
@@ -1475,49 +1692,68 @@ private fun TableBlockEditor(
                         OutlinedTextField(
                             value = cell,
                             onValueChange = { value ->
-                                val next = rows.mapIndexed { r, oldRow ->
-                                    oldRow.mapIndexed { c, old -> if (r == rowIndex && c == columnIndex) value else old }
-                                }
+                                val next =
+                                    rows.mapIndexed { r, oldRow ->
+                                        oldRow.mapIndexed { c, old ->
+                                            if (r == rowIndex && c == columnIndex) value else old
+                                        }
+                                    }
                                 onChange(block.copy(tableCells = next))
                             },
-                            modifier = Modifier.weight(1f).onFocusChanged { if (it.isFocused) onFocused() },
+                            modifier =
+                                Modifier.weight(1f).onFocusChanged {
+                                    if (it.isFocused) onFocused()
+                                },
                             textStyle = MaterialTheme.typography.bodySmall,
                             singleLine = false,
                             minLines = 1,
-                            visualTransformation = searchTransformation(
-                                query = searchQuery,
-                                activeMatch = activeMatch?.takeIf {
-                                    it.cellIndex == rowIndex * (rows.firstOrNull()?.size ?: 1) + columnIndex
-                                },
-                                offset = 0,
-                                normalColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                activeColor = MaterialTheme.colorScheme.primaryContainer,
-                            ),
+                            visualTransformation =
+                                searchTransformation(
+                                    query = searchQuery,
+                                    activeMatch =
+                                        activeMatch?.takeIf {
+                                            it.cellIndex ==
+                                                rowIndex * (rows.firstOrNull()?.size ?: 1) +
+                                                    columnIndex
+                                        },
+                                    offset = 0,
+                                    normalColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    activeColor = MaterialTheme.colorScheme.primaryContainer,
+                                ),
                         )
                     }
                 }
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             TextButton(
                 onClick = {
                     val columns = rows.firstOrNull()?.size?.coerceAtLeast(1) ?: 2
                     onChange(block.copy(tableCells = rows + listOf(List(columns) { "" })))
                 },
-            ) { Text(stringResource(R.string.editor_add_row)) }
+                shapes = ButtonDefaults.shapes(),
+            ) {
+                Text(stringResource(R.string.editor_add_row))
+            }
             TextButton(
                 onClick = { onChange(block.copy(tableCells = rows.map { it + "" })) },
-            ) { Text(stringResource(R.string.editor_add_column)) }
+                shapes = ButtonDefaults.shapes(),
+            ) {
+                Text(stringResource(R.string.editor_add_column))
+            }
             if (rows.size > 1) {
-                TextButton(onClick = { onChange(block.copy(tableCells = rows.dropLast(1))) }) {
+                TextButton(
+                    onClick = { onChange(block.copy(tableCells = rows.dropLast(1))) },
+                    shapes = ButtonDefaults.shapes(),
+                ) {
                     Text(stringResource(R.string.editor_remove_row))
                 }
             }
             if ((rows.firstOrNull()?.size ?: 0) > 1) {
-                TextButton(onClick = { onChange(block.copy(tableCells = rows.map { it.dropLast(1) })) }) {
+                TextButton(
+                    onClick = { onChange(block.copy(tableCells = rows.map { it.dropLast(1) })) },
+                    shapes = ButtonDefaults.shapes(),
+                ) {
                     Text(stringResource(R.string.editor_remove_column))
                 }
             }
@@ -1613,21 +1849,23 @@ private fun applyFormat(block: NoteBlock, selection: TextRange, kind: FormatKind
     return block.copy(spans = stripped)
 }
 
-private fun RichSpan.has(kind: FormatKind): Boolean = when (kind) {
-    FormatKind.BOLD -> bold
-    FormatKind.ITALIC -> italic
-    FormatKind.UNDERLINE -> underline
-    FormatKind.STRIKE -> strikeThrough
-    FormatKind.COLOR -> colorArgb != null
-}
+private fun RichSpan.has(kind: FormatKind): Boolean =
+    when (kind) {
+        FormatKind.BOLD -> bold
+        FormatKind.ITALIC -> italic
+        FormatKind.UNDERLINE -> underline
+        FormatKind.STRIKE -> strikeThrough
+        FormatKind.COLOR -> colorArgb != null
+    }
 
-private fun RichSpan.without(kind: FormatKind): RichSpan = when (kind) {
-    FormatKind.BOLD -> copy(bold = false)
-    FormatKind.ITALIC -> copy(italic = false)
-    FormatKind.UNDERLINE -> copy(underline = false)
-    FormatKind.STRIKE -> copy(strikeThrough = false)
-    FormatKind.COLOR -> copy(colorArgb = null)
-}
+private fun RichSpan.without(kind: FormatKind): RichSpan =
+    when (kind) {
+        FormatKind.BOLD -> copy(bold = false)
+        FormatKind.ITALIC -> copy(italic = false)
+        FormatKind.UNDERLINE -> copy(underline = false)
+        FormatKind.STRIKE -> copy(strikeThrough = false)
+        FormatKind.COLOR -> copy(colorArgb = null)
+    }
 
 private fun RichSpan.emptyStyle(): Boolean =
     !bold && !italic && !underline && !strikeThrough && colorArgb == null
