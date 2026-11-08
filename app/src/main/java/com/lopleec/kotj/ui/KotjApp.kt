@@ -49,10 +49,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumFloatingActionButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -464,11 +464,11 @@ private fun LibraryScreen(
             snackbarHost = { SnackbarHost(snackbar) },
             floatingActionButton = {
                 if (!state.showingTrash) {
-                    LargeFloatingActionButton(onClick = viewModel::createNote) {
+                    MediumFloatingActionButton(onClick = viewModel::createNote) {
                         Icon(
                             imageVector = Icons.Outlined.Edit,
                             contentDescription = stringResource(R.string.library_new_note),
-                            modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+                            modifier = Modifier.size(FloatingActionButtonDefaults.MediumIconSize),
                         )
                     }
                 }
